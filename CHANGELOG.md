@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.4] - 2024-12-19
+
+### Fixed
+- **Windows Compatibility**: Fixed ES module compatibility issues
+  - Updated boxen dependency to version 6.1.1 for CommonJS compatibility
+  - Removed self-reference in package.json dependencies
+  - Fixed ERR_REQUIRE_ESM error on Windows systems
+  - Ensured compatibility with Node.js v20.12.0 and PowerShell
+
 ## [1.6.3] - 2024-12-19
 
 ### Added
