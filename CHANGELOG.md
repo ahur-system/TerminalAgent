@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.6] - 2024-12-19
+
+### Fixed
+- **Provider Selection**: Fixed broken provider selection in settings
+  - Now shows all providers (ChatGPT, Gemini, Grok) regardless of API key status
+  - Added status indicators (✅ Ready / ⚠️  Needs API key) for each provider
+  - Fixed provider switching logic to handle providers without API keys
+  - Set default provider to Gemini as requested
+  - Improved error handling for unavailable providers
+
 ## [1.6.5] - 2024-12-19
 
 ### Fixed

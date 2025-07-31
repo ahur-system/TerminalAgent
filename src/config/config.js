@@ -38,7 +38,7 @@ class ConfigManager {
     
     // Default configuration
     return {
-      defaultProvider: null,
+      defaultProvider: 'gemini',
       apiKeys: {
         openai: [],
         gemini: [],

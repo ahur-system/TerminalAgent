@@ -192,7 +192,8 @@ class DynamicSetupManager {
       }
       
       // Set a default provider even without API keys
-      this.config.setDefaultProvider('openai');
+      // Default to Gemini as requested
+      this.config.setDefaultProvider('gemini');
       console.log('');
       console.log(`${colors.green}✅ Continuing to chat interface...${colors.reset}`);
       console.log('');

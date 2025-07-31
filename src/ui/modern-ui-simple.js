@@ -89,17 +89,22 @@ class ModernTerminalUISimple {
 
   // Show provider selection
   async showProviderSelection() {
+    const allProviders = this.aiProvider.getAllProviders();
     const availableProviders = this.aiProvider.getAvailableProviders();
     
-    if (availableProviders.length <= 1) {
-      console.log(chalk.yellow('⚠️  Only one provider available.'));
+    if (allProviders.length === 0) {
+      console.log(chalk.yellow('⚠️  No providers available.'));
       return;
     }
 
-    const choices = availableProviders.map(provider => ({
-      name: `${provider.name} (${provider.model})`,
-      value: provider.key
-    }));
+    const choices = allProviders.map(provider => {
+      const isAvailable = availableProviders.some(ap => ap.key === provider.key);
+      const status = isAvailable ? '✅ Ready' : '⚠️  Needs API key';
+      return {
+        name: `${provider.name} (${provider.model}) ${status}`,
+        value: provider.key
+      };
+    });
 
     const { selectedProvider } = await inquirer.prompt([
       {
@@ -110,9 +115,17 @@ class ModernTerminalUISimple {
       }
     ]);
 
-    if (this.aiProvider.switchProvider(selectedProvider)) {
-      const provider = this.aiProvider.getCurrentProvider();
-      console.log(chalk.green(`✅ Switched to ${provider.name} (${provider.model})`));
+    const isAvailable = availableProviders.some(ap => ap.key === selectedProvider);
+    
+    if (isAvailable) {
+      if (this.aiProvider.switchProvider(selectedProvider)) {
+        const provider = this.aiProvider.getCurrentProvider();
+        console.log(chalk.green(`✅ Switched to ${provider.name} (${provider.model})`));
+        this.config.setDefaultProvider(selectedProvider);
+      }
+    } else {
+      console.log(chalk.yellow(`⚠️  ${this.config.getProviderNames()[selectedProvider]} needs an API key`));
+      console.log(chalk.white('Add an API key via /settings -> Manage API keys'));
       this.config.setDefaultProvider(selectedProvider);
     }
   }
@@ -511,10 +524,10 @@ class ModernTerminalUISimple {
       timestamp
     });
 
-    // Check if API keys are available
-    const availableProviders = this.config.getAvailableProviders();
-    if (availableProviders.length === 0) {
-      console.log(chalk.yellow('⚠️  No API keys configured'));
+    // Check if current provider is available
+    const currentProvider = this.aiProvider.getCurrentProvider();
+    if (!currentProvider || !this.aiProvider.isProviderAvailable(this.aiProvider.currentProvider)) {
+      console.log(chalk.yellow('⚠️  No API keys configured for current provider'));
       console.log(chalk.white('To chat with AI, add API keys using /settings'));
       console.log(chalk.white('Available commands: /settings, /help, /exit\n'));
       return;
@@ -586,9 +599,21 @@ class ModernTerminalUISimple {
     if (availableProviders.length === 0) {
       // No API keys available
       this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
-    } else if (this.aiProvider.switchProvider(defaultProvider)) {
-      const provider = this.aiProvider.getCurrentProvider();
-      this.showStatusBar(provider.name, provider.model);
+    } else {
+      // Try to switch to default provider, if not available, use first available
+      let providerSwitched = this.aiProvider.switchProvider(defaultProvider);
+      if (!providerSwitched && availableProviders.length > 0) {
+        // Default provider not available, switch to first available
+        const firstAvailableKey = availableProviders[0].key;
+        providerSwitched = this.aiProvider.switchProvider(firstAvailableKey);
+      }
+      
+      if (providerSwitched) {
+        const provider = this.aiProvider.getCurrentProvider();
+        this.showStatusBar(provider.name, provider.model);
+      } else {
+        this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+      }
     }
     
     await this.showWelcome();
