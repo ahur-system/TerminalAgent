@@ -1,10 +1,10 @@
 {
-  "name": "terminal-ai",
+  "name": "terminal-agent",
   "version": "1.6.3",
   "description": "A full-screen terminal application for chatting with multiple AI providers (ChatGPT, Gemini, and Grok) directly from your terminal.",
   "main": "index.js",
   "bin": {
-    "terminal-ai": "./bin/terminal-ai.js"
+    "terminal-agent": "bin/terminal-ai.js"
   },
   "scripts": {
     "start": "node index.js",
@@ -18,7 +18,7 @@
     "grok",
     "cli"
   ],
-  "author": "",
+  "author": "Ali Khaleghi <apps.khaleghi@gmail.com>",
   "license": "MIT",
   "dependencies": {
     "@google/generative-ai": "^0.2.1",
@@ -37,5 +37,22 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ahur-system/TerminalAI.git"
+  },
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ahur-system/TerminalAI/issues"
+  },
+  "homepage": "https://github.com/ahur-system/TerminalAI#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ]
 }

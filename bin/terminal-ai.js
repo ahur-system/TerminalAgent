@@ -5,7 +5,7 @@ const path = require('path');
 
 // Set up the CLI
 program
-  .name('terminal-ai')
+  .name('terminal-agent')
   .description('A full-screen terminal application for chatting with multiple AI providers')
   .version('1.6.3')
   .argument('[provider]', 'Provider to use (openai, gemini, grok)')
