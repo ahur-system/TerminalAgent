@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const axios = require('axios');
 
 class GeminiProvider {
   constructor(configManager = null) {
@@ -6,7 +6,7 @@ class GeminiProvider {
     this.key = 'gemini';
     this.client = null;
     this.apiKey = null;
-    this.model = configManager ? configManager.getModel('gemini') : 'gemini-1.5-flash';
+    this.model = configManager ? configManager.getModel('gemini') : 'gemini-2.0-flash';
     this.configManager = configManager;
   }
 
@@ -16,7 +16,6 @@ class GeminiProvider {
       throw new Error('Gemini API key is required');
     }
     
-    this.client = new GoogleGenerativeAI(apiKey);
     this.apiKey = apiKey;
     
     // Update model from config if available
@@ -48,35 +47,67 @@ class GeminiProvider {
 
   // Get default model
   getDefaultModel() {
-    return 'gemini-1.5-flash';
+    return 'gemini-2.0-flash';
   }
 
-  // Send message to Gemini
+  // Send message to Gemini using direct API call (exactly like your working curl)
   async sendMessage(message, history = []) {
-    if (!this.client) {
+    if (!this.apiKey) {
       throw new Error('Gemini provider is not initialized');
     }
 
-    const model = this.client.getGenerativeModel({
-      model: this.model
-    });
+    try {
+      // Convert history to the exact format from your working curl
+      const contents = [];
+      
+      // Add history messages (without role field)
+      for (const msg of history) {
+        contents.push({
+          parts: [{ text: msg.content }]
+        });
+      }
+      
+      // Add current message (without role field)
+      contents.push({
+        parts: [{ text: message }]
+      });
 
-    // Convert history to Gemini format
-    const chat = model.startChat({
-      history: history.map(msg => ({
-        role: msg.role === 'You' ? 'user' : 'model',
-        parts: [{ text: msg.content }]
-      }))
-    });
+      console.log(`🔍 Debug: Using model: ${this.model}`);
+      console.log(`🔍 Debug: API Key: ${this.apiKey.substring(0, 10)}...`);
+      console.log(`🔍 Debug: Sending request to Gemini API...`);
 
-    const result = await chat.sendMessage(message);
-    const response = await result.response;
-    return response.text();
+      const response = await axios.post(
+        `https://generativelanguage.googleapis.com/v1/models/${this.model}:generateContent`,
+        {
+          contents: contents
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-goog-api-key': this.apiKey
+          }
+        }
+      );
+
+      console.log(`✅ Debug: Request successful`);
+      
+      // Extract the response text
+      const responseText = response.data.candidates[0].content.parts[0].text;
+      return responseText;
+      
+    } catch (error) {
+      console.log(`❌ Debug: Request failed with error: ${error.message}`);
+      if (error.response) {
+        console.log(`🔍 Debug: Response status: ${error.response.status}`);
+        console.log(`🔍 Debug: Response data:`, error.response.data);
+      }
+      throw new Error(`Gemini API Error: ${error.message}`);
+    }
   }
 
   // Check if provider is initialized
   isInitialized() {
-    return this.client !== null;
+    return this.apiKey !== null;
   }
 
   // Get provider info

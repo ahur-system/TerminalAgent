@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.1] - 2024-12-19
+
+### Fixed
+- **Critical Gemini API Fix**: Replaced Google AI SDK with direct axios implementation
+- **403 Forbidden Resolution**: Fixed API compatibility issues with Gemini 2.0 models
+- **Request Format**: Eliminated problematic SDK headers and fields
+- **Direct API Calls**: Now uses exact same request format as working curl examples
+- **API Compatibility**: Resolved conflicts between SDK and API key permissions
+
+### Changed
+- **Gemini Provider**: Completely rewritten to use direct HTTP requests
+- **Request Headers**: Removed `x-goog-api-client` header that caused 403 errors
+- **Request Body**: Removed `role` field that was incompatible with API
+- **Error Handling**: Enhanced debugging and error reporting for API issues
+
 ## [1.7.0] - 2024-12-19
 
 ### Fixed

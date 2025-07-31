@@ -1,6 +1,6 @@
 {
   "name": "terminal-agent",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "description": "A full-screen terminal application for chatting with multiple AI providers (ChatGPT, Gemini, and Grok) directly from your terminal.",
   "main": "index.js",
   "bin": {
