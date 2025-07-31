@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.0] - 2024-12-19
+
+### Added
+- **Professional Debugger System**: Added comprehensive debugging framework (`src/debugger.js`)
+- **Debug CLI Option**: Added `--debug` flag for troubleshooting
+- **Smart Error Reporting**: Enhanced error extraction and sanitization
+- **HTTP Request/Response Logging**: Detailed API call monitoring
+- **Sensitive Data Protection**: Automatic API key and token masking
+
+### Fixed
+- **Gemini Chat History**: Fixed 400 errors in multi-message conversations
+- **Role Field Support**: Added required `role: 'user'` fields for chat API
+- **Request Format**: Corrected Gemini API request structure for conversations
+- **Debug Output**: Replaced verbose `[Object]` with useful, sanitized information
+
+### Changed
+- **Debug Output**: Clean, focused debugging with timestamps and structured data
+- **Error Handling**: Improved error messages with relevant context
+- **API Compatibility**: Enhanced Gemini provider for proper chat conversations
+- **CLI Interface**: Added debug mode for development and troubleshooting
+
 ## [1.7.1] - 2024-12-19
 
 ### Fixed

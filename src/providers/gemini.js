@@ -1,4 +1,5 @@
 const axios = require('axios');
+const debug = require('../debugger');
 
 class GeminiProvider {
   constructor(configManager = null) {
@@ -58,50 +59,51 @@ class GeminiProvider {
 
     try {
       // Convert history to the exact format from your working curl
+      // For chat conversations, we need to include role fields
       const contents = [];
       
-      // Add history messages (without role field)
+      // Add history messages (only user messages)
       for (const msg of history) {
-        contents.push({
-          parts: [{ text: msg.content }]
-        });
+        if (msg.role === 'You') {
+          contents.push({
+            role: 'user',
+            parts: [{ text: msg.content }]
+          });
+        }
       }
       
-      // Add current message (without role field)
+      // Add current message
       contents.push({
+        role: 'user',
         parts: [{ text: message }]
       });
 
-      console.log(`🔍 Debug: Using model: ${this.model}`);
-      console.log(`🔍 Debug: API Key: ${this.apiKey.substring(0, 10)}...`);
-      console.log(`🔍 Debug: Sending request to Gemini API...`);
+      const url = `https://generativelanguage.googleapis.com/v1/models/${this.model}:generateContent`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-goog-api-key': this.apiKey
+      };
+      const body = { contents: contents };
 
-      const response = await axios.post(
-        `https://generativelanguage.googleapis.com/v1/models/${this.model}:generateContent`,
-        {
-          contents: contents
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            'X-goog-api-key': this.apiKey
-          }
-        }
-      );
+      debug.log('Gemini API Request', { model: this.model, messageLength: message.length, historyCount: contents.length });
+      debug.logHttpRequest(url, 'POST', headers, body);
 
-      console.log(`✅ Debug: Request successful`);
+      const response = await axios.post(url, body, { headers });
+
+      debug.success('Gemini API Request successful');
+      debug.logHttpResponse(response.status, response.headers, response.data);
       
       // Extract the response text
       const responseText = response.data.candidates[0].content.parts[0].text;
       return responseText;
       
     } catch (error) {
-      console.log(`❌ Debug: Request failed with error: ${error.message}`);
+      debug.error('Gemini API Request failed', error);
       if (error.response) {
-        console.log(`🔍 Debug: Response status: ${error.response.status}`);
-        console.log(`🔍 Debug: Response data:`, error.response.data);
+        throw new Error(`Gemini API Error: ${error.response.status} - ${error.response.data.error?.message || error.response.statusText}`);
+      } else {
+        throw new Error(`Gemini API Error: ${error.message}`);
       }
-      throw new Error(`Gemini API Error: ${error.message}`);
     }
   }
 

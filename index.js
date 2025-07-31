@@ -1,8 +1,15 @@
 const ModernTerminalUISimple = require('./src/ui/modern-ui-simple');
 const DynamicSetupManager = require('./src/setup/setup-dynamic');
+const debug = require('./src/debugger');
 require('dotenv').config();
 
 async function main(selectedProvider = null, options = {}) {
+  // Enable debug mode if requested
+  if (options.debug) {
+    debug.enable('verbose');
+    debug.log('Debug mode enabled via CLI option');
+  }
+
   // Handle CLI options
   if (options.setup || options.setupDynamic) {
     const setup = new DynamicSetupManager();
@@ -114,6 +121,8 @@ if (require.main === module) {
         options.importPath = args[i + 1];
         i++; // Skip the next argument
       }
+    } else if (arg === '--debug' || arg === '-d') {
+      options.debug = true;
     } else if (!arg.startsWith('-') && !provider) {
       // First non-option argument is the provider
       provider = arg;
