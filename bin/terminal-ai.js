@@ -12,4 +12,10 @@ program
   .option('--config', 'Show current configuration')
   .option('--export [file]', 'Export configuration to file')
   .option('--import [file]', 'Import configuration from file')
-  .option('--debug', 'Enable debug mode for troubleshooting'); 
+  .option('--debug', 'Enable debug mode for troubleshooting')
+  .parse();
+
+const options = program.opts();
+
+// Start the application
+require('../index.js')(null, options); 
