@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.8.1] - 2024-12-19
+
+### Fixed
+- **CLI Execution**: Fixed incomplete CLI code that was missing argument parsing
+- **Global Installation**: Restored proper CLI functionality for global npm installations
+- **Command Line Interface**: Added missing `.parse()` and main function call
+
 ## [1.8.0] - 2024-12-19
 
 ### Added
