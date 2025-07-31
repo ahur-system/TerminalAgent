@@ -1,0 +1,74 @@
+# Version Management Rules
+-- keep no records about cursor in readme or changelog. --
+## Version Bumping Guidelines
+
+When making changes to the TerminalAI project, follow these version bumping rules:
+
+### Patch Version (Third Number) - Small Changes
+- Bug fixes
+- Documentation updates
+- Minor UI improvements
+- Dependency updates
+- Small feature additions
+- Code refactoring without breaking changes
+
+### Minor Version (Second Number) - Significant Changes
+- New features
+- New provider additions
+- Major UI/UX improvements
+- Breaking changes that are backward compatible
+- Significant architectural changes
+
+### Major Version (First Number) - Breaking Changes
+- Breaking changes that are not backward compatible
+- Complete rewrites
+- Major API changes
+
+## Changelog Requirements
+
+When bumping versions, always update the CHANGELOG.md file:
+
+1. **Add a new version entry** at the top of the changelog
+2. **Use the current date** in YYYY-MM-DD format
+3. **Categorize changes** under Added, Changed, Fixed, or Removed
+4. **Provide clear descriptions** of what was changed
+5. **Include breaking changes** if any
+6. **Reference issue numbers** if applicable
+
+## Version Update Process
+
+1. Update version in `package.json`
+2. Update version in `bin/terminal-ai.js` (CLI version)
+3. Update CHANGELOG.md with detailed changes
+4. Commit changes with version bump message
+
+## Example Changelog Entry
+
+```markdown
+## [1.6.1] - 2024-12-19
+
+### Added
+- New feature description
+
+### Changed
+- Updated existing functionality
+
+### Fixed
+- Bug fix description
+
+### Removed
+- Deprecated feature removal
+```
+
+## Current Version
+- Current version: 1.6.0
+- Next patch version: 1.6.1
+- Next minor version: 1.7.0
+- Next major version: 2.0.0
+
+## Project Structure
+- `package.json` - Main version
+- `bin/terminal-ai.js` - CLI version
+- `CHANGELOG.md` - Version history
+- `src/` - Source code
+- `.cursor/rules/` - Cursor rules

@@ -1,0 +1,41 @@
+{
+  "name": "terminal-ai",
+  "version": "1.6.3",
+  "description": "A full-screen terminal application for chatting with multiple AI providers (ChatGPT, Gemini, and Grok) directly from your terminal.",
+  "main": "index.js",
+  "bin": {
+    "terminal-ai": "./bin/terminal-ai.js"
+  },
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [
+    "terminal",
+    "ai",
+    "chatgpt",
+    "gemini",
+    "grok",
+    "cli"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@google/generative-ai": "^0.2.1",
+    "axios": "^1.11.0",
+    "blessed": "^0.1.81",
+    "blessed-contrib": "^4.11.0",
+    "boxen": "^7.1.1",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "commander": "^11.1.0",
+    "dotenv": "^16.3.1",
+    "gradient-string": "^2.0.2",
+    "inquirer": "^8.2.6",
+    "openai": "^4.20.1",
+    "ora": "^7.0.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
