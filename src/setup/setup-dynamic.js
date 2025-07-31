@@ -175,14 +175,28 @@ class DynamicSetupManager {
     const allProviders = ['openai', 'gemini', 'grok'];
     
     if (availableProviders.length === 0) {
-      console.log(`${colors.red}❌ No API Keys Found${colors.reset}`);
+      console.log(`${colors.yellow}⚠️  No API Keys Found${colors.reset}`);
       console.log('');
-      console.log('You need to add at least one API key to use Terminal AI.');
+      console.log('You can still continue to the chat interface and add API keys later.');
       console.log('');
-      console.log('Please add your API keys and restart the application.');
+      console.log('To add API keys:');
+      console.log('  • Use /settings in the chat');
+      console.log('  • Select "Manage API keys"');
+      console.log('  • Add keys for your preferred providers');
       console.log('');
-      await this.prompt('Press Enter to exit...');
-      process.exit(1);
+      const continueChoice = await this.prompt('Continue to chat interface? (y/n): ');
+      if (continueChoice.toLowerCase() !== 'y' && continueChoice.toLowerCase() !== 'yes') {
+        console.log('');
+        console.log('Setup cancelled. You can restart anytime with: terminal-agent --setup');
+        process.exit(0);
+      }
+      
+      // Set a default provider even without API keys
+      this.config.setDefaultProvider('openai');
+      console.log('');
+      console.log(`${colors.green}✅ Continuing to chat interface...${colors.reset}`);
+      console.log('');
+      return;
     }
 
     if (availableProviders.length === 1) {

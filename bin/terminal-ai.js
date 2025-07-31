@@ -7,7 +7,7 @@ const path = require('path');
 program
   .name('terminal-agent')
   .description('A full-screen terminal application for chatting with multiple AI providers')
-  .version('1.6.4')
+  .version('1.6.5')
   .argument('[provider]', 'Provider to use (openai, gemini, grok)')
   .option('-s, --setup', 'Run setup wizard')
   .option('-c, --config', 'Show current configuration')

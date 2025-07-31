@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.5] - 2024-12-19
+
+### Fixed
+- **Setup Flow**: Fixed major UX issue where users couldn't continue without API keys
+  - Users can now continue to chat interface even without API keys
+  - Setup no longer exits when no API keys are found
+  - Added helpful instructions for adding API keys via /settings
+  - Status bar shows "No API Keys" when no keys are configured
+  - Chat interface allows commands like /settings, /help, /exit without API keys
+  - Improved error messages and user guidance
+
 ## [1.6.4] - 2024-12-19
 
 ### Fixed

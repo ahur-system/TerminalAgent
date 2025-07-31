@@ -75,10 +75,8 @@ async function main(selectedProvider = null, options = {}) {
   if (setup.isSetupRequired()) {
     selectedProvider = await setup.runSetup();
     
-    if (!selectedProvider) {
-      console.log('No providers configured. Please add API keys and try again.');
-      process.exit(1);
-    }
+    // Don't exit if no providers configured - let the UI handle it
+    // The setup will set a default provider even without API keys
   }
 
   // Start modern UI

@@ -511,6 +511,15 @@ class ModernTerminalUISimple {
       timestamp
     });
 
+    // Check if API keys are available
+    const availableProviders = this.config.getAvailableProviders();
+    if (availableProviders.length === 0) {
+      console.log(chalk.yellow('⚠️  No API keys configured'));
+      console.log(chalk.white('To chat with AI, add API keys using /settings'));
+      console.log(chalk.white('Available commands: /settings, /help, /exit\n'));
+      return;
+    }
+
     // Show thinking message
     this.showThinking();
 
@@ -572,7 +581,12 @@ class ModernTerminalUISimple {
     this.aiProvider.initialize();
     
     const defaultProvider = this.config.getDefaultProvider() || 'openai';
-    if (this.aiProvider.switchProvider(defaultProvider)) {
+    const availableProviders = this.config.getAvailableProviders();
+    
+    if (availableProviders.length === 0) {
+      // No API keys available
+      this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+    } else if (this.aiProvider.switchProvider(defaultProvider)) {
       const provider = this.aiProvider.getCurrentProvider();
       this.showStatusBar(provider.name, provider.model);
     }
