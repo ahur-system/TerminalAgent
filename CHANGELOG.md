@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.7] - 2024-12-19
+
+### Fixed
+- **NPM Publishing**: Resolved version conflicts and publishing issues
+- **Version Bump**: Updated to version 1.9.7 for clean npm publish
+
 ## [1.9.6] - 2024-12-19
 
 ### Changed

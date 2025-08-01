@@ -31,7 +31,7 @@ class ModernTerminalUISimple {
   showHeader() {
     const title = chalk.cyan('🚀 TERMINAL AI');
     const subtitle = chalk.gray('Agentic Multi-Provider AI Interface');
-    const version = chalk.cyan('v1.9.6');
+    const version = chalk.cyan('v1.9.7');
     const features = chalk.white('ChatGPT • Gemini • Grok');
     const agents = chalk.yellow('Multi-Behavior Agents • Model Switching');
     
