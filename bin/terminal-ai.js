@@ -7,7 +7,7 @@ const path = require('path');
 program
   .name('terminal-agent')
   .description('A full-screen terminal application for chatting with multiple AI providers')
-  .version('1.9.5.1beta')
+  .version('1.9.6')
   .option('--setup', 'Run the setup wizard')
   .option('--config', 'Show current configuration')
   .option('--export [file]', 'Export configuration to file')

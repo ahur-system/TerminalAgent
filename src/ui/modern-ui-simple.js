@@ -31,7 +31,7 @@ class ModernTerminalUISimple {
   showHeader() {
     const title = chalk.cyan('🚀 TERMINAL AI');
     const subtitle = chalk.gray('Agentic Multi-Provider AI Interface');
-    const version = chalk.cyan('v1.9.5.1beta');
+    const version = chalk.cyan('v1.9.6');
     const features = chalk.white('ChatGPT • Gemini • Grok');
     const agents = chalk.yellow('Multi-Behavior Agents • Model Switching');
     
@@ -46,18 +46,35 @@ class ModernTerminalUISimple {
     }));
   }
 
-  // Show status bar
-  showStatusBar(provider, model, status = 'Connected') {
-    const statusColor = status === 'Connected' ? 'green' : 'red';
-    const statusIcon = status === 'Connected' ? '🟢' : '🔴';
+  // Show status bar with location data
+  showStatusBar(provider, model, ipInfo = null) {
+    // Determine connection status based on IP availability
+    const hasConnection = ipInfo && ipInfo.ip;
+    const status = hasConnection ? 'Connected' : 'Disconnected';
+    const statusColor = hasConnection ? 'green' : 'red';
+    const statusIcon = hasConnection ? '🟢' : '🔴';
+    
+    // Create location string
+    let locationString = 'Unknown location';
+    if (ipInfo) {
+      if (ipInfo.ip) {
+        if (ipInfo.city && ipInfo.city !== 'Unknown') {
+          locationString = `${ipInfo.ip} (${ipInfo.city}, ${ipInfo.region}, ${ipInfo.country})`;
+        } else if (ipInfo.country && ipInfo.country !== 'Unknown') {
+          locationString = `${ipInfo.ip} (${ipInfo.country})`;
+        } else {
+          locationString = `${ipInfo.ip} (Unknown location)`;
+        }
+      }
+    }
     
     const statusBar = boxen.default(
-      `${statusIcon} ${chalk.cyan(provider)} | ${chalk.yellow(model)} | ${chalk[statusColor](status)}`,
+      `${statusIcon} ${chalk.cyan(provider)} | ${chalk.yellow(model)} | ${chalk[statusColor](status)}\n${chalk.gray('📍')} ${chalk.cyan(locationString)}`,
       {
         padding: 0.5,
         margin: { top: 0, bottom: 1 },
-        borderStyle: 'single',
-        borderColor: 'gray'
+        borderStyle: 'round',
+        borderColor: 'blue'
       }
     );
     
@@ -138,6 +155,10 @@ class ModernTerminalUISimple {
         const provider = this.aiProvider.getCurrentProvider();
         console.log(chalk.green(`✅ Switched to ${provider.name} (${provider.model})`));
         this.config.setDefaultProvider(selectedProvider);
+        
+        // Update status bar with new provider
+        const ipInfo = await this.getIpAndLocation();
+        this.showStatusBar(provider.name, provider.model, ipInfo);
       }
     } else {
       console.log(chalk.yellow(`⚠️  ${this.config.getProviderNames()[selectedProvider]} needs an API key`));
@@ -193,6 +214,13 @@ class ModernTerminalUISimple {
     this.config.setModel(provider, selectedModel);
     this.aiProvider.updateModel(provider, selectedModel);
     console.log(chalk.green(`✅ Model updated to ${selectedModel}`));
+    
+    // Update status bar with new model
+    const currentProvider = this.aiProvider.getCurrentProvider();
+    if (currentProvider && currentProvider.key === provider) {
+      const ipInfo = await this.getIpAndLocation();
+      this.showStatusBar(currentProvider.name, selectedModel, ipInfo);
+    }
     
     // Add a small delay to show the success message
     await new Promise(resolve => setTimeout(resolve, 1000));
@@ -631,27 +659,6 @@ class ModernTerminalUISimple {
   // Show welcome message
   async showWelcome() {
     console.log(chalk.green('✨ Welcome to Terminal AI!'));
-    
-    // Get and display IP information with loading indicator
-    process.stdout.write(chalk.yellow('🔍 Detecting your location... '));
-    const ipInfo = await this.getIpAndLocation();
-    process.stdout.write('\r' + ' '.repeat(30) + '\r'); // Clear loading message
-    
-    if (ipInfo) {
-      const location = ipInfo.city && ipInfo.city !== 'Unknown' 
-        ? `${ipInfo.city}, ${ipInfo.region}, ${ipInfo.country}`
-        : ipInfo.country !== 'Unknown' 
-          ? `${ipInfo.country}`
-          : 'Unknown location';
-      
-      console.log(chalk.cyan(`🌍 Location: ${ipInfo.ip} (${location})`));
-      if (ipInfo.isp && ipInfo.isp !== 'Unknown') {
-        console.log(chalk.cyan(`📡 ISP: ${ipInfo.isp}`));
-      }
-    } else {
-      console.log(chalk.yellow('⚠️  Could not detect your location'));
-    }
-    
     console.log(chalk.white('Type your message or /help for commands.\n'));
   }
 
@@ -746,13 +753,16 @@ class ModernTerminalUISimple {
     // Initialize AI provider with config
     this.aiProvider.initialize();
     
+    // Get IP and location information
+    const ipInfo = await this.getIpAndLocation();
+    
     const defaultProvider = this.config.getDefaultProvider() || 'openai';
     const availableProviders = this.config.getAvailableProviders();
     
     if (availableProviders.length === 0) {
       // No API keys available
       if (!this.inlineMode) {
-        this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+        this.showStatusBar('No API Keys', 'Add keys via /settings', ipInfo);
       }
     } else {
       // Try to switch to default provider, if not available, use first available
@@ -766,11 +776,11 @@ class ModernTerminalUISimple {
       if (providerSwitched) {
         const provider = this.aiProvider.getCurrentProvider();
         if (!this.inlineMode) {
-          this.showStatusBar(provider.name, provider.model);
+          this.showStatusBar(provider.name, provider.model, ipInfo);
         }
       } else {
         if (!this.inlineMode) {
-          this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+          this.showStatusBar('No API Keys', 'Add keys via /settings', ipInfo);
         }
       }
     }

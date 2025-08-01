@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.6] - 2024-12-19
+
+### Changed
+- **Enhanced Status Bar**: Redesigned status bar with location data integration
+- **Location Display**: Added IP address and location information as second row in status bar
+- **Connection Status**: Connection status now determined by IP availability (IP required, city optional)
+- **Visual Consistency**: Status bar now uses same rounded blue border as header for unified design
+- **Location Integration**: Moved location data from welcome message to status bar for better visibility
+- **Connection Logic**: Improved connection detection based on network reachability
+
+### Features
+- **Dual-Row Status Bar**: First row shows provider/model/connection, second row shows location
+- **Smart Location Format**: Displays IP with city/region/country when available, falls back gracefully
+- **Connection Indicators**: Green dot (🟢) for connected, red dot (🔴) for disconnected
+- **Location Icons**: Uses 📍 icon for location data in status bar
+- **Unified Styling**: Consistent rounded blue borders across header and status bar
+
+### Technical Details
+- **Status Bar Redesign**: Complete rewrite of status bar with location integration
+- **IP Detection**: Connection status based on successful IP address retrieval
+- **Location Formatting**: Smart formatting for different levels of location data availability
+- **Visual Design**: Consistent border styling with header (rounded, blue)
+- **Version Update**: Updated to version 1.9.6
+
 ## [1.9.5.1beta] - 2024-12-19
 
 ### Changed
