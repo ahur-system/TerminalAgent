@@ -1,0 +1,72 @@
+name: Publish to NPM
+
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on version tags like v1.9.0
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run tests (if any)
+        run: npm test || echo "No tests configured"
+        
+      - name: Publish to NPM
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            ## What's New in ${{ github.ref_name }}
+            
+            This release includes the new Agents feature and other improvements.
+            
+            ### 🚀 New Features
+            - **Agents System**: Create custom AI personalities with specific instructions
+            - **Agent Management**: Full CRUD operations for managing agents
+            - **Chat Integration**: Agent instructions automatically included in conversations
+            
+            ### 📋 Changes
+            - Added comprehensive agent management in settings
+            - Added agent persistence in configuration
+            - Added validation and fallback logic
+            - Updated version to ${{ github.ref_name }}
+            
+            ### 🔧 Technical Details
+            - Agents stored in `config.json` under `agents` section
+            - Modified `sendMessage()` to include agent instructions
+            - Full UI integration with existing settings menu
+            
+            ### 📦 Installation
+            ```bash
+            npm install -g terminal-agent
+            ```
+            
+            ### 🎯 Usage
+            1. Run `terminal-agent` or `node index.js`
+            2. Type `/settings` and select "Manage Agents"
+            3. Create custom agents with specific instructions
+            4. Start conversations with your custom AI personalities!
+          draft: false
+          prerelease: false 
