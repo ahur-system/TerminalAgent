@@ -49,6 +49,15 @@ class ConfigManager {
         gemini: 'gemini-1.5-flash',
         grok: 'grok-3'
       },
+      agents: {
+        default: 'general',
+        list: {
+          general: {
+            name: 'General Assistant',
+            instructions: 'You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.'
+          }
+        }
+      },
       firstRun: true
     };
   }
@@ -419,6 +428,87 @@ class ConfigManager {
   // Get configuration file path
   getConfigPath() {
     return this.configPath;
+  }
+
+  // Agent management methods
+  getAgents() {
+    return this.config.agents || { default: 'general', list: {} };
+  }
+
+  getAgentList() {
+    const agents = this.getAgents();
+    return agents.list || {};
+  }
+
+  getDefaultAgent() {
+    const agents = this.getAgents();
+    return agents.default || 'general';
+  }
+
+  setDefaultAgent(agentId) {
+    if (!this.config.agents) {
+      this.config.agents = { default: 'general', list: {} };
+    }
+    this.config.agents.default = agentId;
+    this.saveConfig();
+  }
+
+  getAgent(agentId) {
+    const agents = this.getAgentList();
+    return agents[agentId];
+  }
+
+  addAgent(agentId, name, instructions) {
+    if (!this.config.agents) {
+      this.config.agents = { default: 'general', list: {} };
+    }
+    if (!this.config.agents.list) {
+      this.config.agents.list = {};
+    }
+    
+    this.config.agents.list[agentId] = {
+      name,
+      instructions
+    };
+    this.saveConfig();
+  }
+
+  removeAgent(agentId) {
+    if (this.config.agents && this.config.agents.list) {
+      delete this.config.agents.list[agentId];
+      
+      // If we're removing the default agent, set a new default
+      if (this.config.agents.default === agentId) {
+        const remainingAgents = Object.keys(this.config.agents.list);
+        if (remainingAgents.length > 0) {
+          this.config.agents.default = remainingAgents[0];
+        } else {
+          // If no agents left, create a default one
+          this.config.agents.list.general = {
+            name: 'General Assistant',
+            instructions: 'You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.'
+          };
+          this.config.agents.default = 'general';
+        }
+      }
+      this.saveConfig();
+    }
+  }
+
+  updateAgent(agentId, name, instructions) {
+    if (this.config.agents && this.config.agents.list && this.config.agents.list[agentId]) {
+      this.config.agents.list[agentId] = {
+        name,
+        instructions
+      };
+      this.saveConfig();
+    }
+  }
+
+  getCurrentAgentInstructions() {
+    const defaultAgent = this.getDefaultAgent();
+    const agent = this.getAgent(defaultAgent);
+    return agent ? agent.instructions : '';
   }
 }
 

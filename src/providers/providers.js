@@ -178,7 +178,19 @@ class AIProvider {
     }
 
     try {
-      return await provider.sendMessage(message, history);
+      // Get agent instructions if available
+      let agentInstructions = '';
+      if (this.configManager) {
+        agentInstructions = this.configManager.getCurrentAgentInstructions();
+      }
+
+      // If this is the first message and we have agent instructions, prepend them
+      let processedMessage = message;
+      if (history.length === 0 && agentInstructions) {
+        processedMessage = `${agentInstructions}\n\nUser: ${message}`;
+      }
+
+      return await provider.sendMessage(processedMessage, history);
     } catch (error) {
       throw new Error(`Error sending message to ${this.currentProvider}: ${error.message}`);
     }

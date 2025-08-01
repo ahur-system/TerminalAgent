@@ -4,6 +4,12 @@ const debug = require('./src/debugger');
 require('dotenv').config();
 
 async function main(selectedProvider = null, options = {}) {
+  // Handle version flag
+  if (options.version) {
+    console.log('Terminal AI v1.9.0');
+    return;
+  }
+
   // Enable debug mode if requested
   if (options.debug) {
     debug.enable('verbose');
@@ -123,6 +129,8 @@ if (require.main === module) {
       }
     } else if (arg === '--debug' || arg === '-d') {
       options.debug = true;
+    } else if (arg === '--version' || arg === '-v') {
+      options.version = true;
     } else if (!arg.startsWith('-') && !provider) {
       // First non-option argument is the provider
       provider = arg;

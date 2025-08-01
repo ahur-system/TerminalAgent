@@ -2,6 +2,31 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.0] - 2024-12-19
+
+### Added
+- **Agents Feature**: Added comprehensive agent management system for custom AI personalities
+- **Agent Configuration**: Users can create, edit, and manage custom agents with specific instructions
+- **Agent Selection**: Choose default agent that guides AI responses in conversations
+- **Agent Instructions**: Custom instructions are automatically prepended to first message in conversations
+- **Settings Integration**: Added "Manage Agents" option to settings menu with full CRUD operations
+- **Agent Persistence**: Agents are stored in configuration and persist between sessions
+- **Default Agent**: Pre-configured "General Assistant" agent for immediate use
+
+### Features
+- **Agent Management UI**: Complete interface for adding, editing, removing, and viewing agents
+- **Agent Instructions Editor**: Built-in editor for writing detailed agent instructions
+- **Agent Switching**: Easy switching between different agents for different use cases
+- **Chat Integration**: Agent instructions automatically included in new conversations
+- **Validation**: Agent ID uniqueness and name validation
+- **Fallback Logic**: Automatic fallback to default agent if current agent is removed
+
+### Technical Details
+- **Configuration Storage**: Agents stored in `config.json` under `agents` section
+- **API Integration**: Modified `sendMessage()` to include agent instructions in first message
+- **UI Navigation**: Full integration with existing settings menu and ESC key handling
+- **Error Handling**: Proper error handling for agent operations with user feedback
+
 ## [1.8.1] - 2024-12-19
 
 ### Fixed

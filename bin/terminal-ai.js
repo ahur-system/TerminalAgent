@@ -7,7 +7,7 @@ const path = require('path');
 program
   .name('terminal-agent')
   .description('A full-screen terminal application for chatting with multiple AI providers')
-  .version('1.8.1')
+  .version('1.9.0')
   .option('--setup', 'Run the setup wizard')
   .option('--config', 'Show current configuration')
   .option('--export [file]', 'Export configuration to file')
@@ -17,5 +17,6 @@ program
 
 const options = program.opts();
 
-// Start the application
-require('../index.js')(null, options); 
+// Start the application by calling the main function
+const main = require('../index.js');
+main(null, options).catch(console.error); 

@@ -211,6 +211,13 @@ class ModernTerminalUISimple {
         console.log(chalk.white(`Default Provider: ${chalk.cyan(configSummary.defaultProvider)}`));
       }
       
+      const defaultAgent = this.config.getDefaultAgent();
+      const agents = this.config.getAgentList();
+      const currentAgent = agents[defaultAgent];
+      if (currentAgent) {
+        console.log(chalk.white(`Current Agent: ${chalk.cyan(currentAgent.name)}`));
+      }
+      
       Object.entries(configSummary.providers).forEach(([key, provider]) => {
         if (provider.hasKey) {
           const keyInfo = provider.keyCount > 0 ? ` (${provider.keyCount} keys)` : ' (no keys)';
@@ -226,6 +233,7 @@ class ModernTerminalUISimple {
         { name: 'Change default provider', value: 'provider' },
         { name: 'Change model for provider', value: 'model' },
         { name: 'Manage API keys', value: 'keys' },
+        { name: 'Manage Agents', value: 'agents' },
         { name: 'Import/Export configuration', value: 'config' },
         { name: 'Cancel (ESC)', value: 'cancel' },
         { name: 'Back to chat', value: 'back' }
@@ -279,6 +287,10 @@ class ModernTerminalUISimple {
         } else if (action === 'keys') {
           await this.showApiKeyManagement();
           // Continue showing settings menu after key management
+          continue;
+        } else if (action === 'agents') {
+          await this.showAgentManagement();
+          // Continue showing settings menu after agent management
           continue;
         } else if (action === 'config') {
           await this.showConfigManagement();
@@ -569,7 +581,7 @@ class ModernTerminalUISimple {
     helpTable.push(
       ['Type message', 'Send message to AI'],
       ['/switch', 'Switch AI provider'],
-      ['/settings', 'Open settings menu'],
+      ['/settings', 'Open settings menu (includes Agents)'],
       ['/help', 'Show this help'],
       ['/clear', 'Clear chat history'],
       ['/exit', 'Exit the application']
@@ -823,6 +835,297 @@ class ModernTerminalUISimple {
         }
         throw error;
       }
+    }
+  }
+
+  // Show agent management
+  async showAgentManagement() {
+    while (true) {
+      console.log(chalk.cyan.bold('🤖 Agent Management:'));
+      console.log(chalk.white('─'.repeat(50)));
+      
+      const agents = this.config.getAgentList();
+      const defaultAgent = this.config.getDefaultAgent();
+      
+      console.log(chalk.white(`Default Agent: ${chalk.cyan(agents[defaultAgent]?.name || 'None')}`));
+      console.log(chalk.white('─'.repeat(50)));
+      
+      const choices = [
+        { name: 'Change default agent', value: 'default' },
+        { name: 'Add new agent', value: 'add' },
+        { name: 'Edit agent', value: 'edit' },
+        { name: 'Remove agent', value: 'remove' },
+        { name: 'View agent instructions', value: 'view' },
+        { name: 'Cancel (ESC)', value: 'cancel' },
+        { name: 'Back to settings', value: 'back' }
+      ];
+
+      try {
+        const { action } = await inquirer.prompt([
+          {
+            type: 'list',
+            name: 'action',
+            message: 'What would you like to do?',
+            choices
+          }
+        ]);
+
+        if (action === 'default') {
+          await this.showDefaultAgentSelection();
+        } else if (action === 'add') {
+          await this.addNewAgent();
+        } else if (action === 'edit') {
+          await this.editAgent();
+        } else if (action === 'remove') {
+          await this.removeAgent();
+        } else if (action === 'view') {
+          await this.viewAgentInstructions();
+        } else if (action === 'cancel') {
+          console.log(chalk.yellow('\n👋 Cancelled agent management...'));
+          return;
+        } else if (action === 'back') {
+          return;
+        }
+      } catch (error) {
+        // ESC key pressed or other interruption
+        if (error.isTtyError || error.message === 'User force closed the prompt with 0 null') {
+          console.log(chalk.yellow('\n👋 Returning to settings...'));
+          return;
+        }
+        throw error;
+      }
+    }
+  }
+
+  // Show default agent selection
+  async showDefaultAgentSelection() {
+    const agents = this.config.getAgentList();
+    const agentChoices = Object.entries(agents).map(([id, agent]) => ({
+      name: `${agent.name} (${id})`,
+      value: id
+    }));
+
+    if (agentChoices.length === 0) {
+      console.log(chalk.yellow('⚠️  No agents available.'));
+      return;
+    }
+
+    try {
+      const { selectedAgent } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedAgent',
+          message: 'Choose default agent:',
+          choices: agentChoices
+        }
+      ]);
+
+      this.config.setDefaultAgent(selectedAgent);
+      console.log(chalk.green(`✅ Default agent set to: ${agents[selectedAgent].name}`));
+    } catch (error) {
+      // ESC key pressed or other interruption
+      if (error.isTtyError || error.message === 'User force closed the prompt with 0 null') {
+        console.log(chalk.yellow('\n👋 Cancelled agent selection...'));
+        return;
+      }
+      throw error;
+    }
+  }
+
+  // Add new agent
+  async addNewAgent() {
+    try {
+      const { agentId } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'agentId',
+          message: 'Enter agent ID (e.g., "programmer", "writer"):',
+          validate: (input) => {
+            if (!input.trim()) return 'Agent ID cannot be empty';
+            if (this.config.getAgent(input.trim())) return 'Agent ID already exists';
+            return true;
+          }
+        }
+      ]);
+
+      const { name } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'name',
+          message: 'Enter agent name:',
+          validate: (input) => input.trim() ? true : 'Agent name cannot be empty'
+        }
+      ]);
+
+      const { instructions } = await inquirer.prompt([
+        {
+          type: 'editor',
+          name: 'instructions',
+          message: 'Enter agent instructions (will open in editor):',
+          default: 'You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.'
+        }
+      ]);
+
+      this.config.addAgent(agentId.trim(), name.trim(), instructions.trim());
+      console.log(chalk.green(`✅ Agent "${name}" added successfully!`));
+    } catch (error) {
+      // ESC key pressed or other interruption
+      if (error.isTtyError || error.message === 'User force closed the prompt with 0 null') {
+        console.log(chalk.yellow('\n👋 Cancelled adding agent...'));
+        return;
+      }
+      throw error;
+    }
+  }
+
+  // Edit agent
+  async editAgent() {
+    const agents = this.config.getAgentList();
+    const agentChoices = Object.entries(agents).map(([id, agent]) => ({
+      name: `${agent.name} (${id})`,
+      value: id
+    }));
+
+    if (agentChoices.length === 0) {
+      console.log(chalk.yellow('⚠️  No agents available to edit.'));
+      return;
+    }
+
+    try {
+      const { selectedAgent } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedAgent',
+          message: 'Choose agent to edit:',
+          choices: agentChoices
+        }
+      ]);
+
+      const agent = agents[selectedAgent];
+
+      const { name } = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'name',
+          message: 'Enter new agent name:',
+          default: agent.name,
+          validate: (input) => input.trim() ? true : 'Agent name cannot be empty'
+        }
+      ]);
+
+      const { instructions } = await inquirer.prompt([
+        {
+          type: 'editor',
+          name: 'instructions',
+          message: 'Enter new agent instructions (will open in editor):',
+          default: agent.instructions
+        }
+      ]);
+
+      this.config.updateAgent(selectedAgent, name.trim(), instructions.trim());
+      console.log(chalk.green(`✅ Agent "${name}" updated successfully!`));
+    } catch (error) {
+      // ESC key pressed or other interruption
+      if (error.isTtyError || error.message === 'User force closed the prompt with 0 null') {
+        console.log(chalk.yellow('\n👋 Cancelled editing agent...'));
+        return;
+      }
+      throw error;
+    }
+  }
+
+  // Remove agent
+  async removeAgent() {
+    const agents = this.config.getAgentList();
+    const defaultAgent = this.config.getDefaultAgent();
+    const agentChoices = Object.entries(agents).map(([id, agent]) => ({
+      name: `${agent.name} (${id})${id === defaultAgent ? ' (DEFAULT)' : ''}`,
+      value: id
+    }));
+
+    if (agentChoices.length === 0) {
+      console.log(chalk.yellow('⚠️  No agents available to remove.'));
+      return;
+    }
+
+    try {
+      const { selectedAgent } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedAgent',
+          message: 'Choose agent to remove:',
+          choices: agentChoices
+        }
+      ]);
+
+      const { confirm } = await inquirer.prompt([
+        {
+          type: 'confirm',
+          name: 'confirm',
+          message: `Are you sure you want to remove "${agents[selectedAgent].name}"?`,
+          default: false
+        }
+      ]);
+
+      if (confirm) {
+        this.config.removeAgent(selectedAgent);
+        console.log(chalk.green(`✅ Agent "${agents[selectedAgent].name}" removed successfully!`));
+      } else {
+        console.log(chalk.yellow('❌ Agent removal cancelled.'));
+      }
+    } catch (error) {
+      // ESC key pressed or other interruption
+      if (error.isTtyError || error.message === 'User force closed the prompt with 0 null') {
+        console.log(chalk.yellow('\n👋 Cancelled removing agent...'));
+        return;
+      }
+      throw error;
+    }
+  }
+
+  // View agent instructions
+  async viewAgentInstructions() {
+    const agents = this.config.getAgentList();
+    const agentChoices = Object.entries(agents).map(([id, agent]) => ({
+      name: `${agent.name} (${id})`,
+      value: id
+    }));
+
+    if (agentChoices.length === 0) {
+      console.log(chalk.yellow('⚠️  No agents available.'));
+      return;
+    }
+
+    try {
+      const { selectedAgent } = await inquirer.prompt([
+        {
+          type: 'list',
+          name: 'selectedAgent',
+          message: 'Choose agent to view:',
+          choices: agentChoices
+        }
+      ]);
+
+      const agent = agents[selectedAgent];
+      console.log(chalk.cyan.bold(`\n📋 Instructions for "${agent.name}":`));
+      console.log(chalk.white('─'.repeat(50)));
+      console.log(chalk.white(agent.instructions));
+      console.log(chalk.white('─'.repeat(50)));
+      
+      await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'continue',
+          message: 'Press Enter to continue...'
+        }
+      ]);
+    } catch (error) {
+      // ESC key pressed or other interruption
+      if (error.isTtyError || error.message === 'User force closed the prompt with 0 null') {
+        console.log(chalk.yellow('\n👋 Cancelled viewing agent...'));
+        return;
+      }
+      throw error;
     }
   }
 
