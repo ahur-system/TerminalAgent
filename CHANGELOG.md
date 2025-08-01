@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.1] - 2024-12-19
+
+### Fixed
+- **GitHub Actions**: Fixed workflow permissions and action versions
+- **NPM Publishing**: Resolved version conflict with existing 1.9.0 release
+- **Release Automation**: Improved workflow reliability and error handling
+
 ## [1.9.0] - 2024-12-19
 
 ### Added
