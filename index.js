@@ -8,7 +8,7 @@ require('dotenv').config();
 async function main(selectedProvider = null, options = {}) {
   // Handle version flag
   if (options.version) {
-    console.log('Terminal AI v1.10.0');
+    console.log('Terminal AI v1.11.0');
     return;
   }
 

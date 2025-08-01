@@ -33,7 +33,7 @@ class ModernTerminalUISimple {
     const subtitle = chalk.gray('Agentic Multi-Provider AI Interface');
     
     // Get version from package.json
-    let version = 'v1.10.0'; // fallback
+    let version = 'v1.11.0'; // fallback
     try {
       const packageJson = require('../../package.json');
       version = `v${packageJson.version}`;
