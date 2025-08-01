@@ -1,0 +1,105 @@
+name: Manual Publish to NPM
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.9.0)'
+        required: true
+        default: '1.9.0'
+      dry_run:
+        description: 'Dry run (no actual publish)'
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Verify version
+        run: |
+          echo "Checking if version ${{ github.event.inputs.version }} matches package.json..."
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          if [ "$PACKAGE_VERSION" != "${{ github.event.inputs.version }}" ]; then
+            echo "❌ Version mismatch! Package.json has $PACKAGE_VERSION but workflow specified ${{ github.event.inputs.version }}"
+            exit 1
+          fi
+          echo "✅ Version $PACKAGE_VERSION matches"
+          
+      - name: Run tests (if any)
+        run: npm test || echo "No tests configured"
+        
+      - name: Publish to NPM
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Dry Run - Show what would be published
+        if: ${{ github.event.inputs.dry_run == 'true' }}
+        run: |
+          echo "🔍 DRY RUN - Would publish the following:"
+          echo "Package: $(node -p "require('./package.json').name")"
+          echo "Version: $(node -p "require('./package.json').version")"
+          echo "Files to be included:"
+          npm pack --dry-run
+          
+      - name: Create GitHub Release
+        if: ${{ github.event.inputs.dry_run == 'false' }}
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: Release v${{ github.event.inputs.version }}
+          body: |
+            ## What's New in v${{ github.event.inputs.version }}
+            
+            This release includes the new Agents feature and other improvements.
+            
+            ### 🚀 New Features
+            - **Agents System**: Create custom AI personalities with specific instructions
+            - **Agent Management**: Full CRUD operations for managing agents
+            - **Chat Integration**: Agent instructions automatically included in conversations
+            
+            ### 📋 Changes
+            - Added comprehensive agent management in settings
+            - Added agent persistence in configuration
+            - Added validation and fallback logic
+            - Updated version to v${{ github.event.inputs.version }}
+            
+            ### 🔧 Technical Details
+            - Agents stored in `config.json` under `agents` section
+            - Modified `sendMessage()` to include agent instructions
+            - Full UI integration with existing settings menu
+            
+            ### 📦 Installation
+            ```bash
+            npm install -g terminal-agent
+            ```
+            
+            ### 🎯 Usage
+            1. Run `terminal-agent` or `node index.js`
+            2. Type `/settings` and select "Manage Agents"
+            3. Create custom agents with specific instructions
+            4. Start conversations with your custom AI personalities!
+          draft: false
+          prerelease: false 
