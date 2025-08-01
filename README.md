@@ -121,6 +121,52 @@ terminal-ai --import config-backup.json
 - `terminal-ai --export [file]` or `-e [file]` - Export configuration to file
 - `terminal-ai --import [file]` or `-i [file]` - Import configuration from file
 
+### Advanced Usage with Agents and File Processing
+
+TerminalAI supports specialized agents and file processing for advanced workflows:
+
+#### Agent Selection
+```bash
+# Use a specific agent for specialized tasks
+terminal-ai --agent reviewer --ask "Review this code for best practices"
+terminal-ai --agent writer --ask "Help me write a blog post"
+terminal-ai --agent debugger --ask "Help me fix this error"
+```
+
+#### File Processing
+```bash
+# Process input files and save results
+terminal-ai --ask "Summarize this content" --input document.txt --output summary.txt
+terminal-ai --agent programmer --ask "Add comments to this code" --input script.py --output commented.py
+```
+
+#### Combined Usage
+```bash
+# Provider + Agent + File Processing
+terminal-ai openai --agent reviewer --ask "Review this code" --input code.js --output review.txt
+terminal-ai gemini --agent writer --ask "Rewrite this content" --input draft.txt --output final.txt
+terminal-ai grok --agent debugger --ask "Debug this error" --input error.log --output solution.txt
+```
+
+#### Available Agents
+- **`programmer`** - Code Assistant
+- **`SEO`** - SEO Expert
+- **`writer`** - Writing Assistant
+- **`researcher`** - Research Assistant
+- **`teacher`** - Educational Assistant
+- **`analyst`** - Data Analyst
+- **`creative`** - Creative Assistant
+- **`debugger`** - Debugging Assistant
+- **`reviewer`** - Code Reviewer
+- **`architect`** - System Architect
+
+#### Advanced Command Line Options
+- `terminal-ai --agent [agentid]` - Select specific agent
+- `terminal-ai --ask [message]` - Send direct message
+- `terminal-ai --input [file]` - Process input file
+- `terminal-ai --output [file]` - Save response to file
+- `terminal-ai --debug` - Enable debug mode
+
 ### Controls
 
 - **Type message**: Send message to AI

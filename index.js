@@ -144,11 +144,46 @@ async function handleInlineRequest(selectedProvider, options) {
   const currentProvider = aiProvider.getCurrentProvider();
   console.log(`🤖 Using ${currentProvider.name} (${currentProvider.model})`);
 
+  // Handle agent selection
+  if (options.agent) {
+    const agentInfo = configManager.getAgent(options.agent);
+    if (agentInfo) {
+      console.log(`🎭 Using agent: ${agentInfo.name}`);
+      // Set the agent for this conversation
+      configManager.setDefaultAgent(options.agent);
+    } else {
+      console.log(`⚠️  Agent '${options.agent}' not found. Using default agent.`);
+    }
+  }
+
   // Get the message to ask
-  let message = options.ask;
+  let message = options.ask || '';
   
-  // Check if the message is a file path
-  if (message.startsWith('./') || message.startsWith('/') || message.startsWith('.\\') || message.startsWith('C:\\')) {
+  // Handle input file if provided
+  if (options.input) {
+    try {
+      if (!fs.existsSync(options.input)) {
+        console.log(`❌ Input file not found: ${options.input}`);
+        process.exit(1);
+      }
+      const inputContent = fs.readFileSync(options.input, 'utf8').trim();
+      const fullPath = path.resolve(options.input);
+      console.log(`📄 Reading input from: ${fullPath}`);
+      
+      // If we have both input file and ask message, combine them
+      if (message) {
+        message = `${message}\n\nFile: ${fullPath}\n\n${inputContent}`;
+      } else {
+        message = `Please process the following content from file: ${fullPath}\n\n${inputContent}`;
+      }
+    } catch (error) {
+      console.log(`❌ Error reading input file: ${error.message}`);
+      process.exit(1);
+    }
+  }
+  
+  // Check if the message is a file path (legacy support)
+  if (message && (message.startsWith('./') || message.startsWith('/') || message.startsWith('.\\') || message.startsWith('C:\\'))) {
     try {
       if (!fs.existsSync(message)) {
         console.log(`❌ File not found: ${message}`);
@@ -162,7 +197,17 @@ async function handleInlineRequest(selectedProvider, options) {
     }
   }
 
-  console.log(`💬 Sending: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`);
+  if (!message) {
+    console.log('❌ No message provided. Use --ask or --input to provide content.');
+    process.exit(1);
+  }
+
+  // Display a cleaner message without showing file content
+  if (options.input) {
+    console.log(`💬 Sending: ${options.ask || 'Processing input file'}`);
+  } else {
+    console.log(`💬 Sending: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`);
+  }
   console.log('');
 
   try {
@@ -237,6 +282,18 @@ if (require.main === module) {
       // Check if next argument is a file path
       if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
         options.output = args[i + 1];
+        i++; // Skip the next argument
+      }
+    } else if (arg === '--agent') {
+      // Check if next argument is the agent name
+      if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
+        options.agent = args[i + 1];
+        i++; // Skip the next argument
+      }
+    } else if (arg === '--input') {
+      // Check if next argument is the input file path
+      if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
+        options.input = args[i + 1];
         i++; // Skip the next argument
       }
     } else if (!arg.startsWith('-') && !provider) {

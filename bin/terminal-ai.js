@@ -4,7 +4,7 @@ const { program } = require('commander');
 const path = require('path');
 
 // Get version dynamically from package.json directly for CLI
-let version = '1.11.0'; // fallback
+let version = '1.11.1'; // fallback
 try {
   const packageJson = require('../package.json');
   version = packageJson.version;
@@ -23,6 +23,8 @@ program
   .option('--import [file]', 'Import configuration from file')
   .option('--debug', 'Enable debug mode for troubleshooting')
   .option('--ask <message>', 'Send a direct message to AI and get response')
+  .option('--agent <agentid>', 'Select specific agent for the conversation')
+  .option('--input <file>', 'Input file to process with AI')
   .option('-o, --output <file>', 'Output file for AI response')
   .parse();
 
