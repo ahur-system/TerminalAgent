@@ -2,9 +2,16 @@
 
 A full-screen terminal application for chatting with multiple AI providers (ChatGPT, Gemini, and Grok) directly from your terminal.
 
-> **Current Version**: 1.11.1
+> **Current Version**: 1.12.0
 > 
 > ✨ **Latest Release**: This version includes enhanced status bar with location data, unified styling, and improved UI.
+
+```bash
+# Provider + Agent + File Processing
+terminal-ai openai --agent reviewer --ask "Review this code" --input code.js --output review.txt
+terminal-ai gemini --agent writer --ask "Rewrite this content" --input draft.txt --output final.txt
+terminal-ai grok --agent debugger --ask "Debug this error" --input error.log --output solution.txt
+```
 
 ## Features
 
