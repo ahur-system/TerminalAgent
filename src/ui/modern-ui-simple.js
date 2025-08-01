@@ -7,6 +7,7 @@ const readline = require('readline');
 const axios = require('axios');
 const AIProvider = require('../providers/providers');
 const ConfigManager = require('../config/config');
+const { getVersionWithPrefix } = require('../utils/version');
 
 class ModernTerminalUISimple {
   constructor(inlineMode = false) {
@@ -32,15 +33,8 @@ class ModernTerminalUISimple {
     const title = chalk.cyan('🚀 TERMINAL AI');
     const subtitle = chalk.gray('Agentic Multi-Provider AI Interface');
     
-    // Get version from package.json
-    let version = 'v1.11.0'; // fallback
-    try {
-      const packageJson = require('../../package.json');
-      version = `v${packageJson.version}`;
-    } catch (error) {
-      // If package.json not found, use fallback version
-    }
-    
+    // Get version dynamically using centralized utility
+    const version = getVersionWithPrefix();
     const versionDisplay = chalk.cyan(version);
     const features = chalk.white('ChatGPT • Gemini • Grok');
     const agents = chalk.yellow('Multi-Behavior Agents • Model Switching');

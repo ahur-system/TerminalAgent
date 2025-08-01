@@ -1,4 +1,49 @@
 # Changelog
+## [1.11.1] - 2025-08-01
+
+### Added
+- New features and improvements
+
+### Changed
+- Updated functionality
+
+### Fixed
+- Bug fixes and improvements
+
+### Removed
+- Deprecated features
+
+
+## [1.11.0] - 2025-08-01
+
+### Added
+- New features and improvements
+
+### Changed
+- Updated functionality
+
+### Fixed
+- Bug fixes and improvements
+
+### Removed
+- Deprecated features
+
+
+## [1.12.0] - 2025-08-01
+
+### Added
+- New features and improvements
+
+### Changed
+- Updated functionality
+
+### Fixed
+- Bug fixes and improvements
+
+### Removed
+- Deprecated features
+
+
 
 All notable changes to this project will be documented in this file.
 

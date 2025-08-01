@@ -1,6 +1,7 @@
 const ModernTerminalUISimple = require('./src/ui/modern-ui-simple');
 const DynamicSetupManager = require('./src/setup/setup-dynamic');
 const debug = require('./src/debugger');
+const { getFullAppName } = require('./src/utils/version');
 const fs = require('fs');
 const path = require('path');
 require('dotenv').config();
@@ -8,7 +9,9 @@ require('dotenv').config();
 async function main(selectedProvider = null, options = {}) {
   // Handle version flag
   if (options.version) {
-    console.log('Terminal AI v1.11.0');
+    // Get version dynamically using centralized utility
+    const fullAppName = getFullAppName();
+    console.log(fullAppName);
     return;
   }
 

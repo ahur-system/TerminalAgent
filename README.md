@@ -2,7 +2,7 @@
 
 A full-screen terminal application for chatting with multiple AI providers (ChatGPT, Gemini, and Grok) directly from your terminal.
 
-> **Current Version**: 1.9.7
+> **Current Version**: 1.11.1
 > 
 > ✨ **Latest Release**: This version includes enhanced status bar with location data, unified styling, and improved UI.
 
