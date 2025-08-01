@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.9.5.1beta] - 2024-12-19
+
+### Changed
+- **Banner Redesign**: Completely redesigned application banner with better positioning and content
+- **Top-Left Alignment**: Banner now starts at the top-left corner instead of center
+- **Improved Content**: Removed ad-like content, added version info and feature highlights
+- **Agentic Description**: Updated subtitle to highlight multi-behavior agent capabilities
+- **Compact Design**: More space-efficient banner with better visual hierarchy
+- **Better Colors**: Updated color scheme with blue border and improved contrast
+
+### Features
+- **Professional Layout**: Clean, modern banner design that doesn't waste screen space
+- **Version Display**: Shows current version (v1.9.5.1beta) in the banner
+- **Feature Highlights**: Displays supported AI providers (ChatGPT • Gemini • Grok)
+- **Agentic Capabilities**: Highlights multi-behavior agents and model switching features
+- **Compact Status Bar**: Reduced margins for better space utilization
+
+### Technical Details
+- **Banner Positioning**: Removed center margins, aligned to top-left
+- **Content Structure**: Multi-line banner with title, subtitle, version, and features
+- **Color Scheme**: Blue border with black background for better readability
+- **Version Update**: Updated to version 1.9.5.1beta
+
+## [1.9.5] - 2024-12-19
+
+### Added
+- **Inline CLI Requests**: Added `--ask` option for direct AI queries without entering chat mode
+- **File Input Support**: Can now read prompts from files using `--ask ./prompt.txt`
+- **File Output Support**: Added `-o/--output` option to save AI responses to files
+- **Combined File I/O**: Support for reading prompts from files and writing responses to files
+- **Silent Mode**: Inline requests skip application banner and go straight to results
+- **Auto-Exit**: Inline requests automatically exit after getting response
+
+### Features
+- **Direct Queries**: `terminal-agent [provider] --ask "your question"` for quick AI responses
+- **File Processing**: `terminal-agent --ask ./prompt.txt` to read prompts from files
+- **Response Export**: `terminal-agent --ask "question" -o ./response.txt` to save responses
+- **Full Pipeline**: `terminal-agent --ask ./prompt.txt -o ./response.txt` for complete file I/O
+- **Provider Selection**: Can specify provider as first argument: `terminal-agent gemini --ask "question"`
+- **Error Handling**: Proper error messages for missing files, API issues, and invalid paths
+
+### Technical Details
+- **CLI Enhancement**: Updated commander.js configuration with new options
+- **File Detection**: Smart detection of file paths vs direct messages
+- **Path Support**: Supports relative and absolute paths for file input/output
+- **Exit Behavior**: Proper process exit after inline requests complete
+- **Version Update**: Updated to version 1.9.5
+
 ## [1.9.1] - 2024-12-19
 
 ### Fixed

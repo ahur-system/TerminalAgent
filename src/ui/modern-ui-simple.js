@@ -9,10 +9,11 @@ const AIProvider = require('../providers/providers');
 const ConfigManager = require('../config/config');
 
 class ModernTerminalUISimple {
-  constructor() {
+  constructor(inlineMode = false) {
     this.config = new ConfigManager();
     this.aiProvider = new AIProvider(this.config);
     this.chatHistory = [];
+    this.inlineMode = inlineMode;
     this.rl = readline.createInterface({
       input: process.stdin,
       output: process.stdout,
@@ -28,14 +29,20 @@ class ModernTerminalUISimple {
 
   // Show beautiful header
   showHeader() {
-    const title = gradient.rainbow('🚀 TERMINAL AI');
-    const subtitle = chalk.white('Your AI companion in the terminal');
+    const title = chalk.cyan('🚀 TERMINAL AI');
+    const subtitle = chalk.gray('Agentic Multi-Provider AI Interface');
+    const version = chalk.cyan('v1.9.5.1beta');
+    const features = chalk.white('ChatGPT • Gemini • Grok');
+    const agents = chalk.yellow('Multi-Behavior Agents • Model Switching');
     
-    console.log(boxen.default(`${title}\n${subtitle}`, {
-      padding: 1,
-      margin: 1,
+    // Create a more compact, top-left aligned banner
+    const bannerContent = `${title}\n${subtitle} | ${version}\n${features}\n${agents}`;
+    
+    console.log(boxen.default(bannerContent, {
+      padding: { top: 0.5, bottom: 0.5, left: 1, right: 1 },
+      margin: { top: 0, bottom: 1, left: 0, right: 0 },
       borderStyle: 'round',
-      borderColor: 'cyan'
+      borderColor: 'blue'
     }));
   }
 
@@ -48,9 +55,9 @@ class ModernTerminalUISimple {
       `${statusIcon} ${chalk.cyan(provider)} | ${chalk.yellow(model)} | ${chalk[statusColor](status)}`,
       {
         padding: 0.5,
-        margin: { top: 1, bottom: 1 },
+        margin: { top: 0, bottom: 1 },
         borderStyle: 'single',
-        borderColor: 'white'
+        borderColor: 'gray'
       }
     );
     
@@ -731,8 +738,10 @@ class ModernTerminalUISimple {
 
   // Main chat loop
   async startChat() {
-    this.clearScreen();
-    this.showHeader();
+    if (!this.inlineMode) {
+      this.clearScreen();
+      this.showHeader();
+    }
     
     // Initialize AI provider with config
     this.aiProvider.initialize();
@@ -742,7 +751,9 @@ class ModernTerminalUISimple {
     
     if (availableProviders.length === 0) {
       // No API keys available
-      this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+      if (!this.inlineMode) {
+        this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+      }
     } else {
       // Try to switch to default provider, if not available, use first available
       let providerSwitched = this.aiProvider.switchProvider(defaultProvider);
@@ -754,14 +765,20 @@ class ModernTerminalUISimple {
       
       if (providerSwitched) {
         const provider = this.aiProvider.getCurrentProvider();
-        this.showStatusBar(provider.name, provider.model);
+        if (!this.inlineMode) {
+          this.showStatusBar(provider.name, provider.model);
+        }
       } else {
-        this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+        if (!this.inlineMode) {
+          this.showStatusBar('No API Keys', 'Add keys via /settings', 'Disconnected');
+        }
       }
     }
     
-    await this.showWelcome();
-    this.showChatHistory();
+    if (!this.inlineMode) {
+      await this.showWelcome();
+      this.showChatHistory();
+    }
     
     // Prevent unexpected exits
     process.on('SIGINT', () => {

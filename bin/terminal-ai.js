@@ -7,12 +7,14 @@ const path = require('path');
 program
   .name('terminal-agent')
   .description('A full-screen terminal application for chatting with multiple AI providers')
-  .version('1.9.1')
+  .version('1.9.5.1beta')
   .option('--setup', 'Run the setup wizard')
   .option('--config', 'Show current configuration')
   .option('--export [file]', 'Export configuration to file')
   .option('--import [file]', 'Import configuration from file')
   .option('--debug', 'Enable debug mode for troubleshooting')
+  .option('--ask <message>', 'Send a direct message to AI and get response')
+  .option('-o, --output <file>', 'Output file for AI response')
   .parse();
 
 const options = program.opts();

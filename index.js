@@ -1,12 +1,14 @@
 const ModernTerminalUISimple = require('./src/ui/modern-ui-simple');
 const DynamicSetupManager = require('./src/setup/setup-dynamic');
 const debug = require('./src/debugger');
+const fs = require('fs');
+const path = require('path');
 require('dotenv').config();
 
 async function main(selectedProvider = null, options = {}) {
   // Handle version flag
   if (options.version) {
-    console.log('Terminal AI v1.9.1');
+    console.log('Terminal AI v1.9.5.1beta');
     return;
   }
 
@@ -83,6 +85,12 @@ async function main(selectedProvider = null, options = {}) {
     return;
   }
 
+  // Handle inline ask requests
+  if (options.ask) {
+    await handleInlineRequest(selectedProvider, options);
+    return;
+  }
+
   // Run first-time setup if needed
   const setup = new DynamicSetupManager();
   if (setup.isSetupRequired()) {
@@ -95,6 +103,90 @@ async function main(selectedProvider = null, options = {}) {
   // Start modern UI
   const ui = new ModernTerminalUISimple();
   await ui.startChat();
+}
+
+// Handle inline requests (--ask option)
+async function handleInlineRequest(selectedProvider, options) {
+  const config = require('./src/config/config');
+  const configManager = new config();
+  const AIProvider = require('./src/providers/providers');
+  
+  // Run setup if needed
+  const setup = new DynamicSetupManager();
+  if (setup.isSetupRequired()) {
+    console.log('⚠️  First-time setup required. Please run: terminal-agent --setup');
+    process.exit(1);
+  }
+
+  // Initialize AI provider
+  const aiProvider = new AIProvider(configManager);
+  aiProvider.initialize();
+
+  // Switch to selected provider or use default
+  let providerKey = selectedProvider || configManager.getDefaultProvider() || 'openai';
+  const availableProviders = configManager.getAvailableProviders();
+  
+  if (availableProviders.length === 0) {
+    console.log('❌ No API keys configured. Please run: terminal-agent --setup');
+    process.exit(1);
+  }
+
+  // Try to switch to the requested provider
+  if (!aiProvider.switchProvider(providerKey)) {
+    // If requested provider not available, use first available
+    providerKey = availableProviders[0].key;
+    aiProvider.switchProvider(providerKey);
+  }
+
+  const currentProvider = aiProvider.getCurrentProvider();
+  console.log(`🤖 Using ${currentProvider.name} (${currentProvider.model})`);
+
+  // Get the message to ask
+  let message = options.ask;
+  
+  // Check if the message is a file path
+  if (message.startsWith('./') || message.startsWith('/') || message.startsWith('.\\') || message.startsWith('C:\\')) {
+    try {
+      if (!fs.existsSync(message)) {
+        console.log(`❌ File not found: ${message}`);
+        process.exit(1);
+      }
+      message = fs.readFileSync(message, 'utf8').trim();
+      console.log(`📄 Reading prompt from: ${options.ask}`);
+    } catch (error) {
+      console.log(`❌ Error reading file: ${error.message}`);
+      process.exit(1);
+    }
+  }
+
+  console.log(`💬 Sending: ${message.substring(0, 100)}${message.length > 100 ? '...' : ''}`);
+  console.log('');
+
+  try {
+    // Send the message
+    const response = await aiProvider.sendMessage(message);
+    
+    // Output the response
+    if (options.output) {
+      try {
+        fs.writeFileSync(options.output, response);
+        console.log(`✅ Response saved to: ${path.resolve(options.output)}`);
+      } catch (error) {
+        console.log(`❌ Error writing to file: ${error.message}`);
+        console.log('\n📝 Response:');
+        console.log(response);
+      }
+    } else {
+      console.log('📝 Response:');
+      console.log(response);
+    }
+    
+    // Exit after successful response
+    process.exit(0);
+  } catch (error) {
+    console.log(`❌ Error: ${error.message}`);
+    process.exit(1);
+  }
 }
 
 // Export for CLI usage
@@ -131,6 +223,19 @@ if (require.main === module) {
       options.debug = true;
     } else if (arg === '--version' || arg === '-v') {
       options.version = true;
+    } else if (arg === '--ask') {
+      options.ask = true;
+      // Check if next argument is the message
+      if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
+        options.ask = args[i + 1];
+        i++; // Skip the next argument
+      }
+    } else if (arg === '--output' || arg === '-o') {
+      // Check if next argument is a file path
+      if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
+        options.output = args[i + 1];
+        i++; // Skip the next argument
+      }
     } else if (!arg.startsWith('-') && !provider) {
       // First non-option argument is the provider
       provider = arg;
