@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.11.0] - 2024-12-19
+
+### Added
+- **Comprehensive Retry System**: Implemented robust retry mechanism with exponential backoff
+- **Error Classification**: Smart error detection for connection, server, quota, and authentication issues
+- **RetryManager Class**: Centralized retry logic with configurable attempts and delays
+- **Provider Integration**: Retry system integrated with all AI providers (ChatGPT, Gemini, Grok)
+- **User-Friendly Error Messages**: Context-aware error messages based on error type
+- **Modern Chat UI**: Redesigned chat interface using boxen-style boxes for better UX
+- **Copyable Text**: Removed left/right borders from chat boxes for easy text copying
+- **Visual Consistency**: Unified design language across banner, status bar, and chat elements
+
+### Features
+- **Retry System**: 
+  - Up to 5 retry attempts with exponential backoff (1-30 seconds)
+  - Real-time retry progress display with single-line updates
+  - Automatic error classification and appropriate messaging
+  - Graceful handling of network timeouts and server errors
+- **Chat UI Redesign**:
+  - Boxen-style boxes for user and assistant messages
+  - Consistent color coding (cyan for user, blue for assistant)
+  - Removed redundant "Response received!" messages
+  - Clean spacing and visual hierarchy
+- **Error Handling**:
+  - Connection errors: "Connection failed after multiple attempts"
+  - Server errors: "Server is currently unavailable"
+  - Quota errors: "API quota exceeded"
+  - Auth errors: "Invalid API key"
+- **Visual Improvements**:
+  - Professional chat bubbles with rounded borders
+  - Copyable text without left/right border interference
+  - Consistent spacing and padding
+  - Better visual separation between messages
+
+### Technical Details
+- **RetryManager Implementation**: New utility class with configurable retry parameters
+- **Error Classification**: HTTP status code and message-based error detection
+- **UI Components**: Redesigned showUserMessage, showAssistantResponse, and showRetryProgress
+- **Boxen Integration**: Leveraged boxen library for consistent styling
+- **Border Removal**: Custom logic to remove left/right borders while maintaining visual appeal
+- **Version Update**: Updated to version 1.11.0
+
 ## [1.10.0] - 2024-12-19
 
 ### Added
