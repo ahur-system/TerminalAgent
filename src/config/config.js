@@ -414,17 +414,49 @@ class ConfigManager {
   exportConfigToFile(filePath) {
     try {
       const exportData = this.exportConfig();
-      if (!exportData) return false;
-      
-      const dir = path.dirname(filePath);
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
+      if (!exportData) {
+        console.error('❌ No configuration data to export');
+        return false;
       }
       
-      fs.writeFileSync(filePath, exportData);
+      // Resolve the path to handle both absolute and relative paths
+      const resolvedPath = path.resolve(filePath);
+      const dir = path.dirname(resolvedPath);
+      
+      // Create directory if it doesn't exist
+      if (!fs.existsSync(dir)) {
+        try {
+          fs.mkdirSync(dir, { recursive: true });
+        } catch (error) {
+          console.error(`❌ Failed to create directory: ${dir}`);
+          console.error(`Error: ${error.message}`);
+          return false;
+        }
+      }
+      
+      // Check if we can write to the directory
+      try {
+        const testFile = path.join(dir, '.test-write');
+        fs.writeFileSync(testFile, 'test');
+        fs.unlinkSync(testFile);
+      } catch (error) {
+        console.error(`❌ No write permission for directory: ${dir}`);
+        console.error(`Error: ${error.message}`);
+        return false;
+      }
+      
+      // Write the configuration file
+      fs.writeFileSync(resolvedPath, exportData);
+      
+      // Verify the file was written successfully
+      if (!fs.existsSync(resolvedPath)) {
+        console.error('❌ File was not created after write operation');
+        return false;
+      }
+      
       return true;
     } catch (error) {
-      console.error('Error exporting config to file:', error.message);
+      console.error('❌ Error exporting config to file:', error.message);
       return false;
     }
   }
@@ -434,37 +466,71 @@ class ConfigManager {
     try {
       const importData = JSON.parse(jsonString);
       
-      // Validate the imported data
-      if (!importData.config || typeof importData.config !== 'object') {
-        throw new Error('Invalid configuration format');
+      // Validate the imported data structure
+      if (!importData || typeof importData !== 'object') {
+        console.error('❌ Invalid configuration format: root must be an object');
+        return false;
       }
-
+      
+      // Check if it's the new format with config wrapper
+      let configData;
+      if (importData.config) {
+        configData = importData.config;
+      } else if (importData.apiKeys || importData.models || importData.defaultProvider) {
+        // Direct config format (legacy or direct)
+        configData = importData;
+      } else {
+        console.error('❌ Invalid configuration format: missing config object or direct config properties');
+        return false;
+      }
+      
       // Validate required fields
       const requiredFields = ['apiKeys', 'models', 'defaultProvider'];
       for (const field of requiredFields) {
-        if (!importData.config[field]) {
-          throw new Error(`Missing required field: ${field}`);
+        if (!configData[field]) {
+          console.error(`❌ Missing required field: ${field}`);
+          return false;
         }
       }
 
       // Validate API keys structure
       const validProviders = ['openai', 'gemini', 'grok'];
       for (const provider of validProviders) {
-        if (importData.config.apiKeys[provider] && !Array.isArray(importData.config.apiKeys[provider])) {
-          throw new Error(`Invalid API keys format for ${provider}`);
+        if (configData.apiKeys[provider] && !Array.isArray(configData.apiKeys[provider])) {
+          console.error(`❌ Invalid API keys format for ${provider}: must be an array`);
+          return false;
+        }
+      }
+
+      // Validate models structure
+      for (const provider of validProviders) {
+        if (configData.models[provider] && typeof configData.models[provider] !== 'string') {
+          console.error(`❌ Invalid model format for ${provider}: must be a string`);
+          return false;
         }
       }
 
       // Import the configuration
       this.config = {
         ...this.config, // Keep current defaults
-        ...importData.config // Override with imported data
+        ...configData // Override with imported data
       };
 
+      // Ensure pre-built agents are always available
+      this.config = this.ensurePreBuiltAgents(this.config);
+
       // Save the imported configuration
-      return this.saveConfig();
+      const saveResult = this.saveConfig();
+      if (saveResult) {
+        console.log('✅ Configuration imported and saved successfully');
+      } else {
+        console.error('❌ Failed to save imported configuration');
+        return false;
+      }
+      
+      return true;
     } catch (error) {
-      console.error('Error importing config:', error.message);
+      console.error('❌ Error importing config:', error.message);
       return false;
     }
   }
@@ -472,14 +538,48 @@ class ConfigManager {
   // Import configuration from file
   importConfigFromFile(filePath) {
     try {
-      if (!fs.existsSync(filePath)) {
-        throw new Error('Configuration file not found');
+      // Resolve the path to handle both absolute and relative paths
+      const resolvedPath = path.resolve(filePath);
+      
+      if (!fs.existsSync(resolvedPath)) {
+        console.error(`❌ Configuration file not found: ${resolvedPath}`);
+        return false;
       }
-
-      const fileContent = fs.readFileSync(filePath, 'utf8');
+      
+      // Check if it's a file and readable
+      const stats = fs.statSync(resolvedPath);
+      if (!stats.isFile()) {
+        console.error(`❌ Path is not a file: ${resolvedPath}`);
+        return false;
+      }
+      
+      if (stats.size === 0) {
+        console.error(`❌ Configuration file is empty: ${resolvedPath}`);
+        return false;
+      }
+      
+      // Read and parse the file
+      let fileContent;
+      try {
+        fileContent = fs.readFileSync(resolvedPath, 'utf8');
+      } catch (error) {
+        console.error(`❌ Cannot read file: ${resolvedPath}`);
+        console.error(`Error: ${error.message}`);
+        return false;
+      }
+      
+      // Validate JSON format
+      try {
+        JSON.parse(fileContent);
+      } catch (error) {
+        console.error(`❌ Invalid JSON format in file: ${resolvedPath}`);
+        console.error(`Error: ${error.message}`);
+        return false;
+      }
+      
       return this.importConfig(fileContent);
     } catch (error) {
-      console.error('Error importing config from file:', error.message);
+      console.error(`❌ Error importing config from file: ${error.message}`);
       return false;
     }
   }

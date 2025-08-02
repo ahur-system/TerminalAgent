@@ -51,11 +51,32 @@ async function main(selectedProvider = null, options = {}) {
     const fs = require('fs');
     const path = require('path');
     
-    const exportPath = options.exportPath || './terminal-agent-config.json';
+    // Handle both absolute and relative paths
+    let exportPath = options.export || './terminal-agent-config.json';
+    
+    // If it's a relative path, resolve it relative to current working directory
+    if (!path.isAbsolute(exportPath)) {
+      exportPath = path.resolve(process.cwd(), exportPath);
+    }
+    
+    // Ensure the directory exists
+    const exportDir = path.dirname(exportPath);
+    if (!fs.existsSync(exportDir)) {
+      try {
+        fs.mkdirSync(exportDir, { recursive: true });
+        console.log(`📁 Created directory: ${exportDir}`);
+      } catch (error) {
+        console.log(`❌ Failed to create directory: ${exportDir}`);
+        console.log(`Error: ${error.message}`);
+        process.exit(1);
+      }
+    }
+    
     const success = configManager.exportConfigToFile(exportPath);
     
     if (success) {
-      console.log(`✅ Configuration exported to: ${path.resolve(exportPath)}`);
+      console.log(`✅ Configuration exported to: ${exportPath}`);
+      console.log(`📄 File size: ${fs.statSync(exportPath).size} bytes`);
     } else {
       console.log('❌ Failed to export configuration');
       process.exit(1);
@@ -69,20 +90,42 @@ async function main(selectedProvider = null, options = {}) {
     const fs = require('fs');
     const path = require('path');
     
-    const importPath = options.importPath || './terminal-agent-config.json';
+    // Handle both absolute and relative paths
+    let importPath = options.import || './terminal-agent-config.json';
+    
+    // If it's a relative path, resolve it relative to current working directory
+    if (!path.isAbsolute(importPath)) {
+      importPath = path.resolve(process.cwd(), importPath);
+    }
     
     if (!fs.existsSync(importPath)) {
       console.log(`❌ Configuration file not found: ${importPath}`);
+      console.log(`💡 Try using an absolute path or check the file location`);
+      process.exit(1);
+    }
+    
+    // Validate file is readable
+    try {
+      const stats = fs.statSync(importPath);
+      if (!stats.isFile()) {
+        console.log(`❌ Path is not a file: ${importPath}`);
+        process.exit(1);
+      }
+      console.log(`📄 File size: ${stats.size} bytes`);
+    } catch (error) {
+      console.log(`❌ Cannot access file: ${importPath}`);
+      console.log(`Error: ${error.message}`);
       process.exit(1);
     }
     
     const success = configManager.importConfigFromFile(importPath);
     
     if (success) {
-      console.log(`✅ Configuration imported from: ${path.resolve(importPath)}`);
+      console.log(`✅ Configuration imported from: ${importPath}`);
       console.log('⚠️  You may need to restart the application for changes to take effect');
     } else {
       console.log('❌ Failed to import configuration');
+      console.log('💡 Check if the file contains valid JSON configuration');
       process.exit(1);
     }
     return;
@@ -257,14 +300,14 @@ if (require.main === module) {
       options.export = true;
       // Check if next argument is a file path
       if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
-        options.exportPath = args[i + 1];
+        options.export = args[i + 1];
         i++; // Skip the next argument
       }
     } else if (arg === '--import' || arg === '-i') {
       options.import = true;
       // Check if next argument is a file path
       if (i + 1 < args.length && !args[i + 1].startsWith('-')) {
-        options.importPath = args[i + 1];
+        options.import = args[i + 1];
         i++; // Skip the next argument
       }
     } else if (arg === '--debug' || arg === '-d') {
