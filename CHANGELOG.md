@@ -1,66 +1,48 @@
 # Changelog
+## [1.12.1] - 2025-08-02
+
+### Fixed
+- **CI/CD Build Fix**: Included package-lock.json in repository for reproducible builds
+- **Gitignore Update**: Removed package-lock.json from .gitignore to enable CI/CD builds
+- **Build Process**: Fixed npm ci command failure in GitHub Actions
+
 ## [1.12.0] - 2025-08-01
 
 ### Added
-- New features and improvements
+- **Agent Selection System**: Added `--agent [agentid]` argument for specialized agents
+- **File Processing**: Added `--input [file]` and `--output [file]` arguments
+- **10 Specialized Agents**: programmer, SEO, writer, researcher, teacher, analyst, creative, debugger, reviewer, architect
+- **Combined Workflow**: Support for provider + agent + input + output workflow
+- **Advanced Examples**: Comprehensive usage documentation in examples/ directory
+- **Clean File Display**: Shows full file path without content display
 
 ### Changed
-- Updated functionality
+- **CLI Interface**: Enhanced with agent selection and file processing capabilities
+- **Documentation**: Updated README.md with advanced usage section
+- **Error Handling**: Improved file processing with robust error handling
 
-### Fixed
-- Bug fixes and improvements
-
-### Removed
-- Deprecated features
-
+### Features
+- **Agent System**: Each agent has specialized instructions for different tasks
+- **File Processing**: Input files are combined with ask messages for processing
+- **Provider Compatibility**: All agents work with ChatGPT, Gemini, and Grok
+- **Professional Workflows**: Support for code review, content creation, debugging pipelines
 
 ## [1.11.1] - 2025-08-01
 
 ### Added
-- New features and improvements
+- **Dynamic Version System**: Centralized version utility with robust fallback system
+- **Automated Version Management**: Scripts for updating all version references
+- **README Synchronization**: Automatic README version updates
+- **Comprehensive Examples**: Usage examples with inline arguments
 
 ### Changed
-- Updated functionality
+- **Version Display**: All version displays now dynamically read from package.json
+- **Version Update Process**: Automated version updates across all files
+- **Documentation**: Added examples/ directory with comprehensive usage patterns
 
 ### Fixed
-- Bug fixes and improvements
-
-### Removed
-- Deprecated features
-
-
-## [1.11.0] - 2025-08-01
-
-### Added
-- New features and improvements
-
-### Changed
-- Updated functionality
-
-### Fixed
-- Bug fixes and improvements
-
-### Removed
-- Deprecated features
-
-
-## [1.12.0] - 2025-08-01
-
-### Added
-- New features and improvements
-
-### Changed
-- Updated functionality
-
-### Fixed
-- Bug fixes and improvements
-
-### Removed
-- Deprecated features
-
-
-
-All notable changes to this project will be documented in this file.
+- **Version Inconsistencies**: Eliminated manual version synchronization requirements
+- **Single Source of Truth**: package.json is now the master version source
 
 ## [1.11.0] - 2024-12-19
 

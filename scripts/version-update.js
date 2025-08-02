@@ -39,16 +39,16 @@ function updateVersion(newVersion) {
     const newVersionEntry = `## [${newVersion}] - ${today}
 
 ### Added
-- New features and improvements
+- [DESCRIBE NEW FEATURES HERE]
 
 ### Changed
-- Updated functionality
+- [DESCRIBE CHANGES HERE]
 
 ### Fixed
-- Bug fixes and improvements
+- [DESCRIBE BUG FIXES HERE]
 
 ### Removed
-- Deprecated features
+- [DESCRIBE REMOVED FEATURES HERE]
 
 `;
 
