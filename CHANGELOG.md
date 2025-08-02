@@ -1,4 +1,10 @@
 # Changelog
+## [1.12.2] - 2025-08-02
+
+### Changed
+- **NPM Build Test**: Testing CI/CD pipeline with package-lock.json fix
+- **Build Verification**: Ensuring npm ci works correctly in GitHub Actions
+
 ## [1.12.1] - 2025-08-02
 
 ### Fixed
