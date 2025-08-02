@@ -1,6 +1,6 @@
-# TerminalAI Advanced Usage Examples
+# Terminal Agent Advanced Usage Examples
 
-This file demonstrates the advanced usage patterns for TerminalAI, including agent selection and file processing capabilities.
+This file demonstrates the advanced usage patterns for Terminal Agent, including agent selection and file processing capabilities.
 
 ## 🎭 **Agent Selection Examples**
 

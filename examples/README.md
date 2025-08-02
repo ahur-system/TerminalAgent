@@ -1,11 +1,11 @@
-# TerminalAI Examples
+# Terminal Agent Examples
 
-This directory contains examples and usage patterns for TerminalAI.
+This directory contains examples and usage patterns for Terminal Agent.
 
 ## 📁 **Files in this Directory**
 
 ### **1. `inline-usage-examples.md`**
-Comprehensive documentation showing all types of inline usage with TerminalAI, including:
+Comprehensive documentation showing all types of inline usage with Terminal Agent, including:
 - Basic usage examples
 - Configuration and setup
 - Debugging and troubleshooting
@@ -31,8 +31,8 @@ Executable shell script demonstrating practical usage examples:
 
 ### **Run the Example Script**
 ```bash
-# Make sure you're in the TerminalAI directory
-cd /path/to/TerminalAI
+# Make sure you're in the Terminal Agent directory
+cd /path/to/TerminalAgent
 
 # Run the example script
 ./examples/usage-script.sh
@@ -114,7 +114,7 @@ node index.js --import file.json # Import config
 
 ## 📝 **Notes**
 
-- All examples assume you're running from the TerminalAI root directory
+- All examples assume you're running from the Terminal Agent root directory
 - API keys need to be configured for full functionality
 - Use quotes around complex messages with spaces
 - The `--debug` flag provides detailed logging

@@ -1,4 +1,14 @@
 # Changelog
+## [1.12.3] - 2025-08-02
+
+### Changed
+- **Rebranding**: Renamed from "Terminal AI" to "Terminal Agent"
+- **CLI Command**: Changed from `terminal-ai` to `terminal-agent`
+- **Package Name**: Updated from "terminal-ai" to "terminal-agent"
+- **Repository**: Updated GitHub URLs to reflect new naming
+- **Documentation**: Updated all references throughout codebase
+- **UI**: Updated application title and welcome messages
+
 ## [1.12.2] - 2025-08-02
 
 ### Changed

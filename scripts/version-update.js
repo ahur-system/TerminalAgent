@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Comprehensive version update script for TerminalAI
+ * Comprehensive version update script for Terminal Agent
  * This script updates all version references and documentation
  */
 

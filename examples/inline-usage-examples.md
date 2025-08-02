@@ -1,6 +1,6 @@
-# TerminalAI Inline Usage Examples
+# Terminal Agent Inline Usage Examples
 
-This file demonstrates various ways to use TerminalAI with inline arguments and different command-line options.
+This file demonstrates various ways to use Terminal Agent with inline arguments and different command-line options.
 
 ## 🚀 **Basic Usage Examples**
 

@@ -1,13 +1,13 @@
 #!/bin/bash
 
-# TerminalAI Usage Script Examples
-# This script demonstrates various ways to use TerminalAI with inline arguments
+# Terminal Agent Usage Script Examples
+# This script demonstrates various ways to use Terminal Agent with inline arguments
 
-echo "🚀 TerminalAI Usage Examples"
+echo "🚀 Terminal Agent Usage Examples"
 echo "============================"
 echo ""
 
-# Check if TerminalAI is available
+# Check if Terminal Agent is available
 if ! command -v node &> /dev/null; then
     echo "❌ Node.js is not installed"
     exit 1
@@ -28,7 +28,7 @@ run_example() {
 }
 
 # Example 1: Check version
-run_example "Check TerminalAI version" "node index.js --version"
+run_example "Check Terminal Agent version" "node index.js --version"
 
 # Example 2: Simple question
 run_example "Ask a simple question" "node index.js --ask 'What is 2+2?'"

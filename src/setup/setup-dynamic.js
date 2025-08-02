@@ -62,9 +62,9 @@ class DynamicSetupManager {
     };
 
     console.log(`${colors.cyan}╔══════════════════════════════════════════════════════════════════════════════╗${colors.reset}`);
-    console.log(`${colors.cyan}║${colors.reset}${colors.bright}${colors.magenta}                    🚀 TERMINAL AI SETUP 🚀                    ${colors.reset}${colors.cyan}║${colors.reset}`);
+    console.log(`${colors.cyan}║${colors.reset}${colors.bright}${colors.magenta}                    🚀 TERMINAL AGENT SETUP 🚀                    ${colors.reset}${colors.cyan}║${colors.reset}`);
     console.log(`${colors.cyan}╠══════════════════════════════════════════════════════════════════════════════╣${colors.reset}`);
-    console.log(`${colors.cyan}║${colors.reset}${colors.yellow}  Welcome to the future of terminal AI! Let's get you set up in no time.        ${colors.reset}${colors.cyan}║${colors.reset}`);
+    console.log(`${colors.cyan}║${colors.reset}${colors.yellow}  Welcome to the future of terminal agents! Let's get you set up in no time.        ${colors.reset}${colors.cyan}║${colors.reset}`);
     console.log(`${colors.cyan}║${colors.reset}                                                                              ${colors.cyan}║${colors.reset}`);
     console.log(`${colors.cyan}║${colors.reset}${colors.green}  ✨ Features you'll love:${colors.reset}                                              ${colors.cyan}║${colors.reset}`);
     console.log(`${colors.cyan}║${colors.reset}${colors.white}    • Multi-provider AI support (ChatGPT, Gemini & Grok)${colors.reset}                ${colors.cyan}║${colors.reset}`);
@@ -366,11 +366,10 @@ class DynamicSetupManager {
     console.log('');
     console.log(`${colors.green}🎉 Setup Complete!${colors.reset}`);
     console.log('');
-    console.log(`${colors.blue}Your Terminal AI is ready to use!${colors.reset}`);
+    console.log(`${colors.blue}Your Terminal Agent is ready to use!${colors.reset}`);
     console.log('');
-    console.log('Quick start:');
-    console.log(`  ${colors.yellow}•${colors.reset} Run: ${colors.magenta}terminal-ai${colors.reset}`);
-    console.log(`  ${colors.yellow}•${colors.reset} Or: ${colors.magenta}node index.js${colors.reset}`);
+    console.log(`${colors.yellow}Next steps:${colors.reset}`);
+    console.log(`  ${colors.yellow}•${colors.reset} Run: ${colors.magenta}terminal-agent${colors.reset}`);
     console.log('');
     console.log('Controls:');
     console.log(`  ${colors.yellow}•${colors.reset} ${colors.magenta}Ctrl+S${colors.reset}: Send message`);

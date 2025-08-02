@@ -51,7 +51,7 @@ async function main(selectedProvider = null, options = {}) {
     const fs = require('fs');
     const path = require('path');
     
-    const exportPath = options.exportPath || './terminal-ai-config.json';
+    const exportPath = options.exportPath || './terminal-agent-config.json';
     const success = configManager.exportConfigToFile(exportPath);
     
     if (success) {
@@ -69,7 +69,7 @@ async function main(selectedProvider = null, options = {}) {
     const fs = require('fs');
     const path = require('path');
     
-    const importPath = options.importPath || './terminal-ai-config.json';
+    const importPath = options.importPath || './terminal-agent-config.json';
     
     if (!fs.existsSync(importPath)) {
       console.log(`❌ Configuration file not found: ${importPath}`);

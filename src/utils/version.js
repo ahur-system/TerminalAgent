@@ -1,5 +1,5 @@
 /**
- * Version utility for TerminalAI
+ * Version utility for Terminal Agent
  * Centralizes version retrieval from package.json
  */
 
@@ -62,7 +62,7 @@ function getVersionWithPrefix(relativePath = '../../package.json') {
  * @returns {string} The full application name with version
  */
 function getFullAppName(relativePath = '../../package.json') {
-  return `Terminal AI v${getVersion(relativePath)}`;
+  return `Terminal Agent v${getVersion(relativePath)}`;
 }
 
 module.exports = {

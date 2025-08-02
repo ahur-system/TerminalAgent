@@ -30,7 +30,7 @@ class ModernTerminalUISimple {
 
   // Show beautiful header
   showHeader() {
-    const title = chalk.cyan('🚀 TERMINAL AI');
+    const title = chalk.cyan('🚀 TERMINAL AGENT');
     const subtitle = chalk.gray('Agentic Multi-Provider AI Interface');
     
     // Get version dynamically using centralized utility
@@ -789,7 +789,7 @@ class ModernTerminalUISimple {
 
   // Show welcome message
   async showWelcome() {
-    console.log(chalk.green('✨ Welcome to Terminal AI!'));
+    console.log(chalk.green('✨ Welcome to Terminal Agent!'));
     console.log(chalk.white('Type your message or /help for commands.\n'));
   }
 
@@ -1426,7 +1426,7 @@ class ModernTerminalUISimple {
           type: 'input',
           name: 'filePath',
           message: 'Enter file path to export configuration:',
-          default: './terminal-ai-config.json'
+          default: './terminal-agent-config.json'
         }
       ]);
 
@@ -1454,7 +1454,7 @@ class ModernTerminalUISimple {
           type: 'input',
           name: 'filePath',
           message: 'Enter file path to import configuration from:',
-          default: './terminal-ai-config.json'
+          default: './terminal-agent-config.json'
         }
       ]);
 
