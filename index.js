@@ -173,7 +173,8 @@ async function handleInlineRequest(selectedProvider, options) {
   const availableProviders = configManager.getAvailableProviders();
   
   if (availableProviders.length === 0) {
-    console.log('❌ No API keys configured. Please run: terminal-agent --setup');
+    console.log('❌ No API keys configured. Please add API keys using /settings in the chat interface.');
+    console.log('💡 You can also run: terminal-agent --setup to configure API keys');
     process.exit(1);
   }
 

@@ -1,4 +1,16 @@
 # Changelog
+## [1.12.5] - 2025-08-02
+
+### Fixed
+- **Setup Loop Issue**: Fixed critical bug where setup would run repeatedly instead of only once
+- **First-Run Logic**: Setup now only runs on first installation, not when API keys are missing
+- **User Access**: Users can now access the app and add API keys via /settings after initial setup
+- **Setup Flow**: Setup runs once by force on first run, then requires --setup flag for reconfiguration
+
+### Changed
+- **Setup Requirements**: Removed API key requirement from automatic setup trigger
+- **Error Messages**: Updated inline request error messages to guide users to /settings
+
 ## [1.12.4] - 2025-08-02
 
 ### Added

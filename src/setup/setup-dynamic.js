@@ -424,7 +424,7 @@ class DynamicSetupManager {
 
   // Check if setup is required (for automatic setup)
   isSetupRequired() {
-    return this.config.isFirstRun() || !this.config.hasAnyApiKeys();
+    return this.config.isFirstRun();
   }
 
   // Simple prompt function
