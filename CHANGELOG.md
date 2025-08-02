@@ -1,4 +1,21 @@
 # Changelog
+## [1.12.4] - 2025-08-02
+
+### Added
+- **Enhanced Import/Export Path Handling**: Support for both absolute and relative paths
+- **Improved Error Handling**: Detailed error messages with helpful suggestions
+- **File Validation**: Checks for file existence, readability, and non-empty files
+- **Directory Creation**: Automatically creates missing directories for export paths
+- **Write Permission Testing**: Tests write access before attempting export
+- **JSON Validation**: Validates JSON format before importing configuration
+- **File Size Reporting**: Shows exported file size for better UX
+- **Legacy Format Support**: Handles both legacy and new config formats
+
+### Changed
+- **Import/Export Reliability**: More robust path handling for all scenarios
+- **Error Messages**: Enhanced error reporting with specific details and suggestions
+- **Configuration Management**: Better validation and error recovery
+
 ## [1.12.3] - 2025-08-02
 
 ### Changed
