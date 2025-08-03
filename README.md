@@ -2,7 +2,7 @@
 
 A powerful terminal application for chatting with multiple AI providers (ChatGPT, Gemini, and Grok) directly from your terminal.
 
-**📖 Full Documentation: https://terminal-aget.khaleghi.info/**
+**📖 Full Documentation: https://terminal-agent.khaleghi.info/**
 
 ## 🚀 Quick Start
 
