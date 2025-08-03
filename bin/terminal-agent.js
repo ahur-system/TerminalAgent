@@ -17,6 +17,7 @@ program
   .name('terminal-agent')
   .description('A full-screen terminal application for chatting with multiple AI providers')
   .version(version)
+  .argument('[provider]', 'AI provider to use (openai, gemini, grok)')
   .option('--setup', 'Run the setup wizard')
   .option('--config', 'Show current configuration')
   .option('--export [file]', 'Export configuration to file')
@@ -29,7 +30,8 @@ program
   .parse();
 
 const options = program.opts();
+const provider = program.args[0] || null;
 
 // Start the application by calling the main function
 const main = require('../index.js');
-main(null, options).catch(console.error); 
+main(provider, options).catch(console.error); 

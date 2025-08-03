@@ -1,4 +1,16 @@
 # Changelog
+## [1.12.6] - 2025-08-02
+
+### Fixed
+- **Provider Parameter Bug**: Fixed critical issue where provider parameter was not being passed correctly in `terminal-agent` command
+- **Commander.js Integration**: Added proper positional argument handling for provider selection
+- **CLI Consistency**: `terminal-agent [provider]` now works correctly with all providers (openai, gemini, grok)
+- **Argument Parsing**: Fixed provider argument parsing in bin/terminal-agent.js
+
+### Changed
+- **CLI Interface**: Enhanced bin/terminal-agent.js to properly handle provider positional arguments
+- **Command Compatibility**: Both `node index.js [provider]` and `terminal-agent [provider]` now work identically
+
 ## [1.12.5] - 2025-08-02
 
 ### Fixed
