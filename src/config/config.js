@@ -1,64 +1,175 @@
-const fs = require('fs');
-const path = require('path');
-const blessed = require('blessed');
-const AIProvider = require('../providers/providers');
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const blessed = require("blessed");
+const AIProvider = require("../providers/providers");
 
 class ConfigManager {
   constructor() {
-    this.configPath = path.join(process.cwd(), 'config.json');
+    // Use proper user config directory instead of current working directory
+    const configDir = path.join(os.homedir(), ".config", "terminal-agent");
+    this.configPath = path.join(configDir, "config.json");
+
+    // Ensure config directory exists
+    if (!fs.existsSync(configDir)) {
+      fs.mkdirSync(configDir, { recursive: true });
+    }
+
+    // Try to migrate existing config if new location doesn't exist
+    if (!fs.existsSync(this.configPath)) {
+      this.migrateExistingConfig();
+    }
+
     this.config = this.loadConfig();
+  }
+
+  // Migrate existing config from old locations to new user config directory
+  migrateExistingConfig() {
+    const possibleLocations = [
+      // Most likely locations where config might exist
+      path.join(os.homedir(), "config.json"), // Home directory
+      path.join(process.cwd(), "config.json"), // Current working directory
+    ];
+
+    let bestConfig = null;
+    let bestScore = 0;
+
+    // Find the most complete config file
+    for (const location of possibleLocations) {
+      if (fs.existsSync(location)) {
+        try {
+          const configData = fs.readFileSync(location, "utf8");
+          const config = JSON.parse(configData);
+
+          // Score config based on completeness (API keys, agents, etc.)
+          let score = 0;
+          if (config.apiKeys) {
+            Object.values(config.apiKeys).forEach((keys) => {
+              if (Array.isArray(keys)) score += keys.length;
+            });
+          }
+          if (config.agents && config.agents.list) {
+            score += Object.keys(config.agents.list).length;
+          }
+          if (config.defaultProvider) score += 1;
+
+          if (score > bestScore) {
+            bestScore = score;
+            bestConfig = { data: config, path: location };
+          }
+        } catch (error) {
+          console.warn(
+            `Warning: Could not read config from ${location}:`,
+            error.message,
+          );
+        }
+      }
+    }
+
+    // If we found a config, migrate it to the new location
+    if (bestConfig && bestScore > 0) {
+      try {
+        fs.writeFileSync(
+          this.configPath,
+          JSON.stringify(bestConfig.data, null, 2),
+        );
+        console.log(
+          `✅ Migrated configuration from ${bestConfig.path} to ${this.configPath}`,
+        );
+
+        // Leave a migration note in the old location (but don't delete the original)
+        const migrationNote = {
+          _migration_note: `This config has been migrated to ${this.configPath}`,
+          _migrated_at: new Date().toISOString(),
+          _original_backed_up: true,
+        };
+        const noteContent = `// Configuration migrated to ${this.configPath}\n${JSON.stringify(migrationNote, null, 2)}`;
+        fs.writeFileSync(bestConfig.path + ".migrated", noteContent);
+      } catch (error) {
+        console.error("Error migrating config:", error.message);
+      }
+    }
   }
 
   // Load configuration from file
   loadConfig() {
     try {
       if (fs.existsSync(this.configPath)) {
-        const data = fs.readFileSync(this.configPath, 'utf8');
+        const data = fs.readFileSync(this.configPath, "utf8");
         const config = JSON.parse(data);
-        
+
         // Migrate old config format to new format
-        if (config.apiKeys && typeof config.apiKeys === 'object' && !Array.isArray(config.apiKeys.openai)) {
+        if (
+          config.apiKeys &&
+          typeof config.apiKeys === "object" &&
+          !Array.isArray(config.apiKeys.openai)
+        ) {
           // Convert old single key format to new multiple keys format
           const migratedConfig = {
             ...config,
             apiKeys: {
-              openai: config.apiKeys.openai ? [{ name: 'Default', key: config.apiKeys.openai, isDefault: true }] : [],
-              gemini: config.apiKeys.gemini ? [{ name: 'Default', key: config.apiKeys.gemini, isDefault: true }] : [],
-              grok: config.apiKeys.grok ? [{ name: 'Default', key: config.apiKeys.grok, isDefault: true }] : []
-            }
+              openai: config.apiKeys.openai
+                ? [
+                    {
+                      name: "Default",
+                      key: config.apiKeys.openai,
+                      isDefault: true,
+                    },
+                  ]
+                : [],
+              gemini: config.apiKeys.gemini
+                ? [
+                    {
+                      name: "Default",
+                      key: config.apiKeys.gemini,
+                      isDefault: true,
+                    },
+                  ]
+                : [],
+              grok: config.apiKeys.grok
+                ? [
+                    {
+                      name: "Default",
+                      key: config.apiKeys.grok,
+                      isDefault: true,
+                    },
+                  ]
+                : [],
+            },
           };
           return this.ensurePreBuiltAgents(migratedConfig);
         }
-        
+
         return this.ensurePreBuiltAgents(config);
       }
     } catch (error) {
-      console.error('Error loading config:', error.message);
+      console.error("Error loading config:", error.message);
     }
-    
+
     // Default configuration
     return this.ensurePreBuiltAgents({
-      defaultProvider: 'gemini',
+      defaultProvider: "gemini",
       apiKeys: {
         openai: [],
         gemini: [],
-        grok: []
+        grok: [],
       },
       models: {
-        openai: 'gpt-3.5-turbo',
-        gemini: 'gemini-1.5-flash',
-        grok: 'grok-3'
+        openai: "gpt-3.5-turbo",
+        gemini: "gemini-1.5-flash",
+        grok: "grok-3",
       },
       agents: {
-        default: 'general',
+        default: "general",
         list: {
           general: {
-            name: 'General Assistant',
-            instructions: 'You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.'
-          }
-        }
+            name: "General Assistant",
+            instructions:
+              "You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.",
+          },
+        },
       },
-      firstRun: true
+      firstRun: true,
     });
   }
 
@@ -66,46 +177,55 @@ class ConfigManager {
   ensurePreBuiltAgents(config) {
     const preBuiltAgents = {
       programmer: {
-        name: 'Code Assistant',
-        instructions: 'You are an expert programmer and software developer. Help with coding, debugging, architecture, and technical questions. Provide code examples, explain concepts clearly, and suggest best practices. Always consider security, performance, and maintainability in your recommendations.'
+        name: "Code Assistant",
+        instructions:
+          "You are an expert programmer and software developer. Help with coding, debugging, architecture, and technical questions. Provide code examples, explain concepts clearly, and suggest best practices. Always consider security, performance, and maintainability in your recommendations.",
       },
       writer: {
-        name: 'Writing Assistant',
-        instructions: 'You are a professional writer and editor. Help with writing, editing, grammar, style, and content creation. Provide clear, engaging, and well-structured content. Offer suggestions for improvement while maintaining the author\'s voice and intent.'
+        name: "Writing Assistant",
+        instructions:
+          "You are a professional writer and editor. Help with writing, editing, grammar, style, and content creation. Provide clear, engaging, and well-structured content. Offer suggestions for improvement while maintaining the author's voice and intent.",
       },
       researcher: {
-        name: 'Research Assistant',
-        instructions: 'You are a thorough research assistant. Help gather information, analyze data, and provide well-sourced answers. Always cite sources when possible, present balanced perspectives, and distinguish between facts and opinions.'
+        name: "Research Assistant",
+        instructions:
+          "You are a thorough research assistant. Help gather information, analyze data, and provide well-sourced answers. Always cite sources when possible, present balanced perspectives, and distinguish between facts and opinions.",
       },
       teacher: {
-        name: 'Educational Assistant',
-        instructions: 'You are an experienced educator. Help explain complex topics in simple terms, create learning materials, and adapt explanations to different skill levels. Use analogies, examples, and step-by-step explanations to make concepts accessible.'
+        name: "Educational Assistant",
+        instructions:
+          "You are an experienced educator. Help explain complex topics in simple terms, create learning materials, and adapt explanations to different skill levels. Use analogies, examples, and step-by-step explanations to make concepts accessible.",
       },
       analyst: {
-        name: 'Data Analyst',
-        instructions: 'You are a skilled data analyst. Help interpret data, create visualizations, identify trends, and provide insights. Focus on practical analysis that leads to actionable recommendations.'
+        name: "Data Analyst",
+        instructions:
+          "You are a skilled data analyst. Help interpret data, create visualizations, identify trends, and provide insights. Focus on practical analysis that leads to actionable recommendations.",
       },
       creative: {
-        name: 'Creative Assistant',
-        instructions: 'You are a creative professional. Help with brainstorming, ideation, artistic projects, and innovative solutions. Encourage creative thinking while providing practical guidance for bringing ideas to life.'
+        name: "Creative Assistant",
+        instructions:
+          "You are a creative professional. Help with brainstorming, ideation, artistic projects, and innovative solutions. Encourage creative thinking while providing practical guidance for bringing ideas to life.",
       },
       debugger: {
-        name: 'Debugging Assistant',
-        instructions: 'You are a debugging expert. Help identify and fix issues in code, troubleshoot problems, and optimize performance. Ask clarifying questions to understand the problem context and provide systematic debugging approaches.'
+        name: "Debugging Assistant",
+        instructions:
+          "You are a debugging expert. Help identify and fix issues in code, troubleshoot problems, and optimize performance. Ask clarifying questions to understand the problem context and provide systematic debugging approaches.",
       },
       reviewer: {
-        name: 'Code Reviewer',
-        instructions: 'You are an experienced code reviewer. Analyze code for bugs, security issues, performance problems, and maintainability. Provide constructive feedback and suggest improvements while explaining the reasoning behind your recommendations.'
+        name: "Code Reviewer",
+        instructions:
+          "You are an experienced code reviewer. Analyze code for bugs, security issues, performance problems, and maintainability. Provide constructive feedback and suggest improvements while explaining the reasoning behind your recommendations.",
       },
       architect: {
-        name: 'System Architect',
-        instructions: 'You are a system architect and technical consultant. Help design software architectures, choose appropriate technologies, and plan system implementations. Consider scalability, security, performance, and maintainability in your recommendations.'
-      }
+        name: "System Architect",
+        instructions:
+          "You are a system architect and technical consultant. Help design software architectures, choose appropriate technologies, and plan system implementations. Consider scalability, security, performance, and maintainability in your recommendations.",
+      },
     };
 
     // Ensure agents structure exists
     if (!config.agents) {
-      config.agents = { default: 'general', list: {} };
+      config.agents = { default: "general", list: {} };
     }
     if (!config.agents.list) {
       config.agents.list = {};
@@ -131,7 +251,7 @@ class ConfigManager {
       fs.writeFileSync(this.configPath, JSON.stringify(this.config, null, 2));
       return true;
     } catch (error) {
-      console.error('Error saving config:', error.message);
+      console.error("Error saving config:", error.message);
       return false;
     }
   }
@@ -142,21 +262,21 @@ class ConfigManager {
     const envKeys = {
       openai: process.env.OPENAI_API_KEY,
       gemini: process.env.GEMINI_API_KEY,
-      grok: process.env.GROK_API_KEY
+      grok: process.env.GROK_API_KEY,
     };
 
     // Get default keys from config
     const configKeys = {
-      openai: this.getDefaultApiKey('openai'),
-      gemini: this.getDefaultApiKey('gemini'),
-      grok: this.getDefaultApiKey('grok')
+      openai: this.getDefaultApiKey("openai"),
+      gemini: this.getDefaultApiKey("gemini"),
+      grok: this.getDefaultApiKey("grok"),
     };
 
     // Return environment keys if available, otherwise config keys
     return {
       openai: envKeys.openai || configKeys.openai,
       gemini: envKeys.gemini || configKeys.gemini,
-      grok: envKeys.grok || configKeys.grok
+      grok: envKeys.grok || configKeys.grok,
     };
   }
 
@@ -168,7 +288,7 @@ class ConfigManager {
   // Get default API key for a provider
   getDefaultApiKey(provider) {
     const keys = this.config.apiKeys[provider] || [];
-    const defaultKey = keys.find(key => key.isDefault);
+    const defaultKey = keys.find((key) => key.isDefault);
     return defaultKey ? defaultKey.key : null;
   }
 
@@ -180,13 +300,13 @@ class ConfigManager {
 
     // If this is the new default, unset other defaults
     if (isDefault) {
-      this.config.apiKeys[provider].forEach(k => k.isDefault = false);
+      this.config.apiKeys[provider].forEach((k) => (k.isDefault = false));
     }
 
     this.config.apiKeys[provider].push({
       name,
       key,
-      isDefault
+      isDefault,
     });
 
     this.saveConfig();
@@ -196,7 +316,9 @@ class ConfigManager {
   removeApiKey(provider, name) {
     if (!this.config.apiKeys[provider]) return false;
 
-    const index = this.config.apiKeys[provider].findIndex(k => k.name === name);
+    const index = this.config.apiKeys[provider].findIndex(
+      (k) => k.name === name,
+    );
     if (index !== -1) {
       const removedKey = this.config.apiKeys[provider][index];
       this.config.apiKeys[provider].splice(index, 1);
@@ -217,10 +339,10 @@ class ConfigManager {
     if (!this.config.apiKeys[provider]) return false;
 
     // Unset all defaults first
-    this.config.apiKeys[provider].forEach(k => k.isDefault = false);
+    this.config.apiKeys[provider].forEach((k) => (k.isDefault = false));
 
     // Set the new default
-    const key = this.config.apiKeys[provider].find(k => k.name === name);
+    const key = this.config.apiKeys[provider].find((k) => k.name === name);
     if (key) {
       key.isDefault = true;
       this.saveConfig();
@@ -231,7 +353,7 @@ class ConfigManager {
 
   // Set API key (backward compatibility)
   setApiKey(provider, key) {
-    this.addApiKey(provider, 'Default', key, true);
+    this.addApiKey(provider, "Default", key, true);
   }
 
   // Get model for provider
@@ -248,11 +370,11 @@ class ConfigManager {
   // Get default model for provider
   getDefaultModel(provider) {
     const defaultModels = {
-      openai: 'gpt-3.5-turbo',
-      gemini: 'gemini-1.5-flash',
-      grok: 'grok-3'
+      openai: "gpt-3.5-turbo",
+      gemini: "gemini-1.5-flash",
+      grok: "grok-3",
     };
-    return defaultModels[provider] || 'unknown';
+    return defaultModels[provider] || "unknown";
   }
 
   // Get all available models for a provider
@@ -260,57 +382,56 @@ class ConfigManager {
     const models = {
       openai: [
         // GPT-3.5 family
-        'gpt-3.5-turbo',
-        'gpt-3.5-turbo-16k',
+        "gpt-3.5-turbo",
+        "gpt-3.5-turbo-16k",
 
         // GPT-4 family
-        'gpt-4',
-        'gpt-4-0314',          // legacy
-        'gpt-4-0613',          // legacy
-        'gpt-4-turbo',         // current standard
-        'gpt-4-1106-preview',  // legacy turbo
-        'gpt-4-0125-preview',  // legacy turbo
+        "gpt-4",
+        "gpt-4-0314", // legacy
+        "gpt-4-0613", // legacy
+        "gpt-4-turbo", // current standard
+        "gpt-4-1106-preview", // legacy turbo
+        "gpt-4-0125-preview", // legacy turbo
 
         // GPT-4o family (Omni)
-        'gpt-4o',              // flagship multimodal
-        'gpt-4o-mini',         // lightweight/cheaper
-        'gpt-4o-mini-2024-06-15' // versioned release
+        "gpt-4o", // flagship multimodal
+        "gpt-4o-mini", // lightweight/cheaper
+        "gpt-4o-mini-2024-06-15", // versioned release
       ],
       gemini: [
-        'gemini-1.0',
-        'gemini-1.0-vision',
-        'gemini-1.0-pro',
-        'gemini-1.0-pro-vision',
-        'gemini-1.5-flash',
-        'gemini-1.5-flash-002',
-        'gemini-1.5-pro',
-        'gemini-1.5-pro-002',
-        'gemini-2.0-flash',
-        'gemini-2.0-flash‑lite',
-        'gemini-2.0-pro',
-        'gemini-2.0-flash-thinking' ,  // agentic reasoning variant
-        'gemini-2.5-flash',
-        'gemini-2.5-pro',
-        'gemini-2.5-flash‑lite'
+        "gemini-1.0",
+        "gemini-1.0-vision",
+        "gemini-1.0-pro",
+        "gemini-1.0-pro-vision",
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-002",
+        "gemini-1.5-pro",
+        "gemini-1.5-pro-002",
+        "gemini-2.0-flash",
+        "gemini-2.0-flash‑lite",
+        "gemini-2.0-pro",
+        "gemini-2.0-flash-thinking", // agentic reasoning variant
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-2.5-flash‑lite",
       ],
       grok: [
         // Grok 4 series
-        'grok-4-0709',
-        'grok-4',
-        'grok-4-latest',
-        'grok-4-heavy',
+        "grok-4-0709",
+        "grok-4",
+        "grok-4-latest",
+        "grok-4-heavy",
 
         // Grok 3 series
-        'grok-3',
-        'grok-3-mini',
-        'grok-3-fast',
-        'grok-3-mini-fast',
+        "grok-3",
+        "grok-3-mini",
+        "grok-3-fast",
+        "grok-3-mini-fast",
 
         // Grok 2 series (vision and image generation)
-        'grok-2-vision-1212',
-        'grok-2-image-1212'
-      ]
-      
+        "grok-2-vision-1212",
+        "grok-2-image-1212",
+      ],
     };
     return models[provider] || [];
   }
@@ -336,17 +457,17 @@ class ConfigManager {
   getAvailableProviders() {
     const apiKeys = this.getApiKeys();
     const providers = [];
-    
+
     if (apiKeys.openai) {
-      providers.push('openai');
+      providers.push("openai");
     }
     if (apiKeys.gemini) {
-      providers.push('gemini');
+      providers.push("gemini");
     }
     if (apiKeys.grok) {
-      providers.push('grok');
+      providers.push("grok");
     }
-    
+
     return providers;
   }
 
@@ -359,9 +480,9 @@ class ConfigManager {
   // Get provider names for display
   getProviderNames() {
     return {
-      openai: 'ChatGPT (OpenAI)',
-      gemini: 'Gemini (Google)',
-      grok: 'Grok AI (xAI)'
+      openai: "ChatGPT (OpenAI)",
+      gemini: "Gemini (Google)",
+      grok: "Grok AI (xAI)",
     };
   }
 
@@ -370,21 +491,23 @@ class ConfigManager {
     const apiKeys = this.getApiKeys();
     const summary = {
       defaultProvider: this.config.defaultProvider,
-      providers: {}
+      providers: {},
     };
 
     // Show all providers, even those without API keys
-    const allProviders = ['openai', 'gemini', 'grok'];
-    
-    allProviders.forEach(provider => {
+    const allProviders = ["openai", "gemini", "grok"];
+
+    allProviders.forEach((provider) => {
       const hasKey = apiKeys[provider];
-      const keyCount = this.config.apiKeys[provider] ? this.config.apiKeys[provider].length : 0;
-      
+      const keyCount = this.config.apiKeys[provider]
+        ? this.config.apiKeys[provider].length
+        : 0;
+
       summary.providers[provider] = {
         name: this.getProviderNames()[provider],
         model: this.getModel(provider),
         hasKey: !!hasKey,
-        keyCount: keyCount
+        keyCount: keyCount,
       };
     });
 
@@ -395,17 +518,17 @@ class ConfigManager {
   exportConfig() {
     try {
       const exportData = {
-        version: '1.0',
+        version: "1.0",
         timestamp: new Date().toISOString(),
         config: {
           ...this.config,
           // Remove sensitive data for export (optional)
           // apiKeys: {} // Uncomment to exclude API keys from export
-        }
+        },
       };
       return JSON.stringify(exportData, null, 2);
     } catch (error) {
-      console.error('Error exporting config:', error.message);
+      console.error("Error exporting config:", error.message);
       return null;
     }
   }
@@ -415,14 +538,14 @@ class ConfigManager {
     try {
       const exportData = this.exportConfig();
       if (!exportData) {
-        console.error('❌ No configuration data to export');
+        console.error("❌ No configuration data to export");
         return false;
       }
-      
+
       // Resolve the path to handle both absolute and relative paths
       const resolvedPath = path.resolve(filePath);
       const dir = path.dirname(resolvedPath);
-      
+
       // Create directory if it doesn't exist
       if (!fs.existsSync(dir)) {
         try {
@@ -433,30 +556,30 @@ class ConfigManager {
           return false;
         }
       }
-      
+
       // Check if we can write to the directory
       try {
-        const testFile = path.join(dir, '.test-write');
-        fs.writeFileSync(testFile, 'test');
+        const testFile = path.join(dir, ".test-write");
+        fs.writeFileSync(testFile, "test");
         fs.unlinkSync(testFile);
       } catch (error) {
         console.error(`❌ No write permission for directory: ${dir}`);
         console.error(`Error: ${error.message}`);
         return false;
       }
-      
+
       // Write the configuration file
       fs.writeFileSync(resolvedPath, exportData);
-      
+
       // Verify the file was written successfully
       if (!fs.existsSync(resolvedPath)) {
-        console.error('❌ File was not created after write operation');
+        console.error("❌ File was not created after write operation");
         return false;
       }
-      
+
       return true;
     } catch (error) {
-      console.error('❌ Error exporting config to file:', error.message);
+      console.error("❌ Error exporting config to file:", error.message);
       return false;
     }
   }
@@ -465,27 +588,35 @@ class ConfigManager {
   importConfig(jsonString) {
     try {
       const importData = JSON.parse(jsonString);
-      
+
       // Validate the imported data structure
-      if (!importData || typeof importData !== 'object') {
-        console.error('❌ Invalid configuration format: root must be an object');
+      if (!importData || typeof importData !== "object") {
+        console.error(
+          "❌ Invalid configuration format: root must be an object",
+        );
         return false;
       }
-      
+
       // Check if it's the new format with config wrapper
       let configData;
       if (importData.config) {
         configData = importData.config;
-      } else if (importData.apiKeys || importData.models || importData.defaultProvider) {
+      } else if (
+        importData.apiKeys ||
+        importData.models ||
+        importData.defaultProvider
+      ) {
         // Direct config format (legacy or direct)
         configData = importData;
       } else {
-        console.error('❌ Invalid configuration format: missing config object or direct config properties');
+        console.error(
+          "❌ Invalid configuration format: missing config object or direct config properties",
+        );
         return false;
       }
-      
+
       // Validate required fields
-      const requiredFields = ['apiKeys', 'models', 'defaultProvider'];
+      const requiredFields = ["apiKeys", "models", "defaultProvider"];
       for (const field of requiredFields) {
         if (!configData[field]) {
           console.error(`❌ Missing required field: ${field}`);
@@ -494,18 +625,28 @@ class ConfigManager {
       }
 
       // Validate API keys structure
-      const validProviders = ['openai', 'gemini', 'grok'];
+      const validProviders = ["openai", "gemini", "grok"];
       for (const provider of validProviders) {
-        if (configData.apiKeys[provider] && !Array.isArray(configData.apiKeys[provider])) {
-          console.error(`❌ Invalid API keys format for ${provider}: must be an array`);
+        if (
+          configData.apiKeys[provider] &&
+          !Array.isArray(configData.apiKeys[provider])
+        ) {
+          console.error(
+            `❌ Invalid API keys format for ${provider}: must be an array`,
+          );
           return false;
         }
       }
 
       // Validate models structure
       for (const provider of validProviders) {
-        if (configData.models[provider] && typeof configData.models[provider] !== 'string') {
-          console.error(`❌ Invalid model format for ${provider}: must be a string`);
+        if (
+          configData.models[provider] &&
+          typeof configData.models[provider] !== "string"
+        ) {
+          console.error(
+            `❌ Invalid model format for ${provider}: must be a string`,
+          );
           return false;
         }
       }
@@ -513,7 +654,7 @@ class ConfigManager {
       // Import the configuration
       this.config = {
         ...this.config, // Keep current defaults
-        ...configData // Override with imported data
+        ...configData, // Override with imported data
       };
 
       // Ensure pre-built agents are always available
@@ -522,15 +663,15 @@ class ConfigManager {
       // Save the imported configuration
       const saveResult = this.saveConfig();
       if (saveResult) {
-        console.log('✅ Configuration imported and saved successfully');
+        console.log("✅ Configuration imported and saved successfully");
       } else {
-        console.error('❌ Failed to save imported configuration');
+        console.error("❌ Failed to save imported configuration");
         return false;
       }
-      
+
       return true;
     } catch (error) {
-      console.error('❌ Error importing config:', error.message);
+      console.error("❌ Error importing config:", error.message);
       return false;
     }
   }
@@ -540,34 +681,34 @@ class ConfigManager {
     try {
       // Resolve the path to handle both absolute and relative paths
       const resolvedPath = path.resolve(filePath);
-      
+
       if (!fs.existsSync(resolvedPath)) {
         console.error(`❌ Configuration file not found: ${resolvedPath}`);
         return false;
       }
-      
+
       // Check if it's a file and readable
       const stats = fs.statSync(resolvedPath);
       if (!stats.isFile()) {
         console.error(`❌ Path is not a file: ${resolvedPath}`);
         return false;
       }
-      
+
       if (stats.size === 0) {
         console.error(`❌ Configuration file is empty: ${resolvedPath}`);
         return false;
       }
-      
+
       // Read and parse the file
       let fileContent;
       try {
-        fileContent = fs.readFileSync(resolvedPath, 'utf8');
+        fileContent = fs.readFileSync(resolvedPath, "utf8");
       } catch (error) {
         console.error(`❌ Cannot read file: ${resolvedPath}`);
         console.error(`Error: ${error.message}`);
         return false;
       }
-      
+
       // Validate JSON format
       try {
         JSON.parse(fileContent);
@@ -576,7 +717,7 @@ class ConfigManager {
         console.error(`Error: ${error.message}`);
         return false;
       }
-      
+
       return this.importConfig(fileContent);
     } catch (error) {
       console.error(`❌ Error importing config from file: ${error.message}`);
@@ -591,7 +732,7 @@ class ConfigManager {
 
   // Agent management methods
   getAgents() {
-    return this.config.agents || { default: 'general', list: {} };
+    return this.config.agents || { default: "general", list: {} };
   }
 
   getAgentList() {
@@ -601,12 +742,12 @@ class ConfigManager {
 
   getDefaultAgent() {
     const agents = this.getAgents();
-    return agents.default || 'general';
+    return agents.default || "general";
   }
 
   setDefaultAgent(agentId) {
     if (!this.config.agents) {
-      this.config.agents = { default: 'general', list: {} };
+      this.config.agents = { default: "general", list: {} };
     }
     this.config.agents.default = agentId;
     this.saveConfig();
@@ -619,15 +760,15 @@ class ConfigManager {
 
   addAgent(agentId, name, instructions) {
     if (!this.config.agents) {
-      this.config.agents = { default: 'general', list: {} };
+      this.config.agents = { default: "general", list: {} };
     }
     if (!this.config.agents.list) {
       this.config.agents.list = {};
     }
-    
+
     this.config.agents.list[agentId] = {
       name,
-      instructions
+      instructions,
     };
     this.saveConfig();
   }
@@ -635,7 +776,7 @@ class ConfigManager {
   removeAgent(agentId) {
     if (this.config.agents && this.config.agents.list) {
       delete this.config.agents.list[agentId];
-      
+
       // If we're removing the default agent, set a new default
       if (this.config.agents.default === agentId) {
         const remainingAgents = Object.keys(this.config.agents.list);
@@ -644,10 +785,11 @@ class ConfigManager {
         } else {
           // If no agents left, create a default one
           this.config.agents.list.general = {
-            name: 'General Assistant',
-            instructions: 'You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.'
+            name: "General Assistant",
+            instructions:
+              "You are a helpful AI assistant. Provide clear, accurate, and helpful responses to user questions.",
           };
-          this.config.agents.default = 'general';
+          this.config.agents.default = "general";
         }
       }
       this.saveConfig();
@@ -655,10 +797,14 @@ class ConfigManager {
   }
 
   updateAgent(agentId, name, instructions) {
-    if (this.config.agents && this.config.agents.list && this.config.agents.list[agentId]) {
+    if (
+      this.config.agents &&
+      this.config.agents.list &&
+      this.config.agents.list[agentId]
+    ) {
       this.config.agents.list[agentId] = {
         name,
-        instructions
+        instructions,
       };
       this.saveConfig();
     }
@@ -667,8 +813,8 @@ class ConfigManager {
   getCurrentAgentInstructions() {
     const defaultAgent = this.getDefaultAgent();
     const agent = this.getAgent(defaultAgent);
-    return agent ? agent.instructions : '';
+    return agent ? agent.instructions : "";
   }
 }
 
-module.exports = ConfigManager; 
+module.exports = ConfigManager;
